@@ -1,0 +1,283 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+// 1. AUTHENTICATION & USER MANAGEMENT
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  firebaseUid   String?   @unique
+  passwordHash  String?
+  name          String
+  role          Role      @default(CANDIDATE)
+  photoURL      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Refresh tokens
+  refreshTokens RefreshToken[]
+
+  // Profiles and user data
+  profile       Profile?
+  education     Education[]
+  projects      Project[]
+  skills        Skill[]
+  resumes       Resume[]
+  achievements  Achievement[]
+
+  // Business activity
+  submissions      Submission[]
+  mockInterviews   MockInterview[]
+  analyticsProgress AnalyticsProgress[]
+  bookmarks        Bookmark[]
+  notifications    Notification[]
+  calendarEvents   CalendarEvent[]
+  notes            Note[]
+}
+
+enum Role {
+  ADMIN
+  RECRUITER
+  CANDIDATE
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Profile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  college        String?
+  graduationYear Int?
+  bio            String?
+  githubUrl      String?
+  linkedinUrl    String?
+  yearsOfExp     Float    @default(0.0)
+  targetRole     String?  @default("Software Engineer")
+  targetSalary   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Education {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution  String
+  degree       String
+  fieldOfStudy String?
+  startDate    DateTime
+  endDate      DateTime?
+  gpa          Float?
+  createdAt    DateTime  @default(now())
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  techStack   String[]
+  projectUrl  String?
+  repoUrl     String?
+  createdAt   DateTime @default(now())
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  proficiency String   @default("Beginner") // Beginner, Intermediate, Expert
+  category    String   @default("General")  // Frontend, Backend, Language, System Design
+  createdAt   DateTime @default(now())
+}
+
+model Resume {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName       String
+  fileUrl        String?
+  parsedText     String?
+  atsScore       Int      @default(0)
+  suggestions    String[]
+  missingKeywords String[]
+  createdAt      DateTime @default(now())
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  issuer      String?
+  dateAwarded DateTime?
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+// 2. COMPANIES MODULE
+model Company {
+  id             String           @id @default(uuid())
+  name           String           @unique
+  logoUrl        String?
+  difficulty     String           @default("Medium") // Easy, Medium, Hard
+  hiringRate     Float            @default(5.0)
+  eligibility    String?
+  rounds         InterviewRound[]
+  hiringProcess  String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model InterviewRound {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  roundNumber Int
+  name        String   // e.g., "Screening", "Technical DSA 1", "System Design", "HR"
+  description String?
+  weightage   Float    @default(1.0)
+  createdAt   DateTime @default(now())
+}
+
+// 3. CODING MODULE
+model CodingQuestion {
+  id          String       @id @default(uuid())
+  title       String
+  difficulty  String       @default("Medium") // Easy, Medium, Hard
+  category    String       @default("Algorithms")
+  acceptance  String       @default("50%")
+  content     String
+  inputFormat String?
+  outputFormat String?
+  constraints String?
+  testCases   Json?        // [{ input: any, expectedOutput: any }]
+  harness     Json?        // { [language]: driverCodeTemplate } — see judge0_service usage in coding_controller
+  createdAt   DateTime     @default(now())
+  submissions Submission[]
+}
+
+model Submission {
+  id         String         @id @default(uuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   CodingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  code       String
+  language   String         @default("typescript")
+  status     String         @default("Pending") // Accepted, Wrong Answer, TLE, Compile Error
+  runtime    Int?           // ms
+  memory     Int?           // KB
+  feedback   String?
+  createdAt  DateTime       @default(now())
+}
+
+// 4. INTERVIEW MODULE (Mock Interviews)
+model MockInterview {
+  id          String             @id @default(uuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName String
+  role        String             @default("Software Engineer")
+  difficulty  String             @default("Medium")
+  score       Int                @default(0)
+  feedback    String?
+  transcripts InterviewTranscript[]
+  createdAt   DateTime           @default(now())
+}
+
+model InterviewTranscript {
+  id              String        @id @default(uuid())
+  mockInterviewId String
+  mockInterview   MockInterview @relation(fields: [mockInterviewId], references: [id], onDelete: Cascade)
+  speaker         String        // "Interviewer", "Candidate"
+  text            String
+  audioUrl        String?       // For voice-based answers
+  confidence      Float?
+  createdAt       DateTime      @default(now())
+}
+
+// 5. ANALYTICS MODULE
+model AnalyticsProgress {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date           DateTime @default(now())
+  xpGained       Int      @default(0)
+  problemsSolved Int      @default(0)
+  interviewsDone Int      @default(0)
+  studyMinutes   Int      @default(0)
+  weakAreas      String[]
+  strongAreas    String[]
+}
+
+model LeaderboardEntry {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  userName    String
+  userCollege String?
+  xp          Int      @default(0)
+  rank        Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+// 6. GENERAL PREPARATION UTILITIES
+model Bookmark {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemType   String   // "Question", "Company", "Resource"
+  itemId     String
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, itemType, itemId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  isRead    Boolean  @default(false)
+  type      String   @default("System") // "Reminder", "Feedback", "System"
+  createdAt DateTime @default(now())
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  date        String
+  time        String   @default("12:00")
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  folder    String   @default("Unsorted")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}

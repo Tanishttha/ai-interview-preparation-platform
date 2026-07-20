@@ -1,0 +1,6 @@
+{
+  "name": "AI Interview Preparation Platform",
+  "description": "Master coding, aptitude, HR, technical and system design interviews with company-specific tracks, personalized roadmaps, resume analysis, and real-time AI mock interviews.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

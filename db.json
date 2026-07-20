@@ -1,0 +1,541 @@
+{
+  "users": [
+    {
+      "id": "candidate-default-id",
+      "email": "candidate@prepai.com",
+      "passwordHash": "$2b$10$xyz123abc456def789ghiO",
+      "name": "Mehak",
+      "role": "CANDIDATE",
+      "photoURL": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-07-19T19:11:48.343Z",
+      "updatedAt": "2026-07-19T19:11:48.343Z"
+    },
+    {
+      "email": "google-candidate@example.com",
+      "firebaseUid": "google-simulated-user",
+      "name": "google-candidate",
+      "passwordHash": null,
+      "role": "CANDIDATE",
+      "photoURL": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      "id": "u_1784542377012_1h31nl",
+      "createdAt": "2026-07-20T10:12:57.012Z",
+      "updatedAt": "2026-07-20T10:12:57.012Z"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "p1",
+      "userId": "candidate-default-id",
+      "college": "NSUT Delhi",
+      "graduationYear": 2026,
+      "bio": "Passionate software engineer focused on system architectures and algorithms.",
+      "githubUrl": "https://github.com",
+      "linkedinUrl": "https://linkedin.com",
+      "yearsOfExp": 0.5,
+      "targetRole": "Software Engineer",
+      "targetSalary": "18-24 LPA",
+      "cgpa": 8.2,
+      "branch": "Computer Science",
+      "problemsSolved": 142,
+      "resumeScore": 89,
+      "targetCompany": "Google",
+      "createdAt": "2026-07-19T19:11:48.343Z",
+      "updatedAt": "2026-07-19T19:11:48.343Z"
+    },
+    {
+      "id": "p_1784542377013",
+      "userId": "u_1784542377012_1h31nl",
+      "college": "Global University",
+      "graduationYear": 2026,
+      "bio": "Software engineering enthusiast",
+      "githubUrl": "",
+      "linkedinUrl": "",
+      "yearsOfExp": 0,
+      "targetRole": "Software Engineer",
+      "targetSalary": "",
+      "cgpa": 8.2,
+      "branch": "Computer Science",
+      "problemsSolved": 142,
+      "resumeScore": 89,
+      "targetCompany": "Google"
+    }
+  ],
+  "companies": [
+    {
+      "id": "google",
+      "name": "Google",
+      "logo": "🔍",
+      "role": "Software Engineer (L3/L4)",
+      "package": "32 - 45 LPA",
+      "difficulty": "Hard",
+      "location": "Bangalore, Hyderabad, Pune",
+      "batch": "2025 / 2026",
+      "interviewRounds": [
+        "Online Assessment",
+        "Technical Round 1 (DS/Algo)",
+        "Technical Round 2 (System Design)",
+        "Technical Round 3 (Googliness)"
+      ],
+      "prepTime": "3 - 4 Months",
+      "successRate": 12,
+      "overview": "Google LLC is an American multinational technology company focusing on artificial intelligence, search engine technology, online advertising, cloud computing, computer software, and quantum computing.",
+      "hiringProcess": "Consists of a rigorous DSA-focused online assessment, followed by 3-4 rounds of algorithmic and architectural design problem-solving with a final behavioral fitment round.",
+      "eligibility": "B.Tech/M.Tech/MCA with 70%+ or 7.0 CGPA, no active backlogs.",
+      "ctcBreakdown": "Base: 22L, RSUs: 15L (vested over 4 years), Sign-on: 3L, Performance Bonus: 15%",
+      "skillsRequired": [
+        "Advanced Data Structures",
+        "Graph Algorithms",
+        "Dynamic Programming",
+        "Scalability",
+        "Concurrency"
+      ],
+      "importantTopics": [
+        "Segment Trees",
+        "Dijkstra & MST",
+        "DP on Trees",
+        "System Design Core Concepts"
+      ],
+      "recentTrends": "Focusing heavily on search quality systems, real-time data ingestion pipelines, and ML/AI model integrations.",
+      "difficultyScore": 92,
+      "resources": [
+        {
+          "name": "Google Engineering Blog",
+          "type": "Tech Articles",
+          "url": "https://engineering.google"
+        },
+        {
+          "name": "LeetCode Google Interview Card",
+          "type": "Practice Prep",
+          "url": "#"
+        },
+        {
+          "name": "System Design Primer",
+          "type": "Architecture",
+          "url": "#"
+        }
+      ]
+    },
+    {
+      "id": "microsoft",
+      "name": "Microsoft",
+      "logo": "💻",
+      "role": "Software Engineer Intern / FTE",
+      "package": "28 - 40 LPA",
+      "difficulty": "Medium",
+      "location": "Hyderabad, Bangalore, Noida",
+      "batch": "2025 / 2026",
+      "interviewRounds": [
+        "Coding Challenge",
+        "Technical Round 1 (Trees & Graphs)",
+        "Technical Round 2 (System Design)",
+        "AA (As Appropriate) Round"
+      ],
+      "prepTime": "2 - 3 Months",
+      "successRate": 18,
+      "overview": "Microsoft Corporation is an American multinational technology corporation producing computer software, consumer electronics, personal computers, and cloud services.",
+      "hiringProcess": "Begins with an online technical test, followed by virtual on-sites emphasizing operating systems concepts, data structures, and structural system design.",
+      "eligibility": "Open to all engineering streams with CGPA > 7.5.",
+      "ctcBreakdown": "Base: 18L, Stock: 10L (over 4 years), Joining Bonus: 2.5L, Performance: 10-15%",
+      "skillsRequired": [
+        "Binary Trees",
+        "System Design",
+        "Operating Systems",
+        "Object Oriented Programming"
+      ],
+      "importantTopics": [
+        "Tree Traversals",
+        "Low Level Design (LLD)",
+        "Concurrency & Threading",
+        "Trie Datastructure"
+      ],
+      "recentTrends": "Deepening integrations with OpenAI services, cloud containerizations, and multi-tenant SaaS services.",
+      "difficultyScore": 78,
+      "resources": [
+        {
+          "name": "Microsoft Technical Docs",
+          "type": "Documentation",
+          "url": "#"
+        },
+        {
+          "name": "OOPs Design Patterns",
+          "type": "Architecture",
+          "url": "#"
+        }
+      ]
+    },
+    {
+      "id": "amazon",
+      "name": "Amazon",
+      "logo": "📦",
+      "role": "Software Development Engineer I",
+      "package": "25 - 34 LPA",
+      "difficulty": "Hard",
+      "location": "Bangalore, Chennai, Delhi-NCR",
+      "batch": "2025 / 2026",
+      "interviewRounds": [
+        "Online Assessment",
+        "Technical SDE-1 Round",
+        "Technical SDE-2 Round",
+        "Bar Raiser (Leadership Principles)"
+      ],
+      "prepTime": "2 - 3 Months",
+      "successRate": 15,
+      "overview": "Amazon.com, Inc. is an American multinational technology company focusing on e-commerce, cloud computing, online advertising, digital streaming, and artificial intelligence.",
+      "hiringProcess": "Very structured hiring process focused heavily on the 16 Leadership Principles combined with classic DSA and architectural problems.",
+      "eligibility": "B.Tech/B.E/M.S in Computer Science or related fields.",
+      "ctcBreakdown": "Base: 16.5L, Stocks: 10L, First year sign-on: 3.5L, Second year sign-on: 4L",
+      "skillsRequired": [
+        "Trees & Graphs",
+        "System Design (HLD/LLD)",
+        "Object-Oriented Design",
+        "SQL"
+      ],
+      "importantTopics": [
+        "LRU Cache",
+        "Topological Sort",
+        "Sliding Window",
+        "Design Patterns"
+      ],
+      "recentTrends": "Focusing on distributed caching, high throughput logistics queues, and robust microservices.",
+      "difficultyScore": 85,
+      "resources": [
+        {
+          "name": "Amazon Leadership Principles Guide",
+          "type": "Behavioral",
+          "url": "#"
+        },
+        {
+          "name": "System Design Basics",
+          "type": "Architecture",
+          "url": "#"
+        }
+      ]
+    },
+    {
+      "id": "atlassian",
+      "name": "Atlassian",
+      "logo": "🌌",
+      "role": "Graduate Software Engineer",
+      "package": "30 - 42 LPA",
+      "difficulty": "Hard",
+      "location": "Bangalore (Remote-Friendly)",
+      "batch": "2025 / 2026",
+      "interviewRounds": [
+        "Online Assessment",
+        "Technical Coding",
+        "System Design & Code Craft",
+        "Values Fitment"
+      ],
+      "prepTime": "3 Months",
+      "successRate": 10,
+      "overview": "Atlassian Corporation is an Australian software company that develops products for software development, project management, and collaborative team processes.",
+      "hiringProcess": "Starts with standard OA, followed by highly interactive live coding where code cleanliness, test cases, and OOP structure are scrutinized alongside algorithmic optimality.",
+      "eligibility": "CS/IT streams with CGPA > 8.0 preferred.",
+      "ctcBreakdown": "Base: 20L, Stocks: 15L, Cash Allowances: 5L",
+      "skillsRequired": [
+        "Clean Code Principles",
+        "Object Oriented Design",
+        "Concurrency",
+        "Queue Systems"
+      ],
+      "importantTopics": [
+        "Refactoring",
+        "Rate Limiters",
+        "Hash Tables",
+        "Design Patterns"
+      ],
+      "recentTrends": "Collaboration platform scalability, real-time text sync, and AI-enabled JIRA integrations.",
+      "difficultyScore": 88,
+      "resources": [
+        {
+          "name": "Atlassian Values Blueprint",
+          "type": "Core Values",
+          "url": "#"
+        },
+        {
+          "name": "Refactoring Guru",
+          "type": "Clean Code",
+          "url": "#"
+        }
+      ]
+    },
+    {
+      "id": "uber",
+      "name": "Uber",
+      "logo": "🚗",
+      "role": "Software Engineer I",
+      "package": "35 - 50 LPA",
+      "difficulty": "Hard",
+      "location": "Bangalore, Hyderabad",
+      "batch": "2025 / 2026",
+      "interviewRounds": [
+        "Coding Test",
+        "Algorithmic DSA Round",
+        "Concurrency/Machine Coding",
+        "System Design",
+        "HR fitment"
+      ],
+      "prepTime": "3 - 4 Months",
+      "successRate": 8,
+      "overview": "Uber Technologies, Inc. is an American technology provider of ride-hailing, food delivery, and freight transportation systems.",
+      "hiringProcess": "Among the hardest technical interviews. Incorporates standard algorithmic rounds along with a dedicated machine coding or multi-threaded logic round.",
+      "eligibility": "Exceptional problem-solving skills, open branch, but solid CS foundations.",
+      "ctcBreakdown": "Base: 26L, Stock: 18L, Sign-on: 4L, Bonus: 15%",
+      "skillsRequired": [
+        "Advanced Graphs",
+        "Multi-threading",
+        "Distributed Systems",
+        "Low Latency Designs"
+      ],
+      "importantTopics": [
+        "QuadTrees & Geohashing",
+        "Producer-Consumer Queues",
+        "Dijkstra / A*",
+        "Consistent Hashing"
+      ],
+      "recentTrends": "High scale geofencing, dynamic surge pricing systems, and real-time navigation algorithms.",
+      "difficultyScore": 95,
+      "resources": [
+        {
+          "name": "Uber Engineering Blog",
+          "type": "Tech Articles",
+          "url": "#"
+        },
+        {
+          "name": "Designing Data-Intensive Applications",
+          "type": "Systems",
+          "url": "#"
+        }
+      ]
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "logo": "🎬",
+      "role": "Senior Software Engineer",
+      "package": "50 - 75 LPA",
+      "difficulty": "Hard",
+      "location": "Bangalore (Remote)",
+      "batch": "2025 / 2026",
+      "interviewRounds": [
+        "Recruiter Call",
+        "Technical Screening",
+        "Panel Round 1 (System Design)",
+        "Panel Round 2 (Coding & Architecture)",
+        "Culture Memo Fitment"
+      ],
+      "prepTime": "4 Months",
+      "successRate": 5,
+      "overview": "Netflix, Inc. is an American subscription video-on-demand over-the-top streaming service and production company.",
+      "hiringProcess": "Very focused on independent execution capability, deep architectural insights, and high compliance with the Netflix Freedom & Responsibility culture deck.",
+      "eligibility": "Extensive software experience or highly outstanding project history.",
+      "ctcBreakdown": "Base: 45L, Stocks: 20L, Benefits: 5L",
+      "skillsRequired": [
+        "High Scalability",
+        "Video Streaming Protocols",
+        "Microservice Fault Tolerance",
+        "Caching Strategies"
+      ],
+      "importantTopics": [
+        "CDN Architecture",
+        "Chaos Engineering",
+        "Dynamic Bitrate Adaptation",
+        "Sharding"
+      ],
+      "recentTrends": "Edge computing nodes, adaptive video encoding, and advanced AI recommendation layers.",
+      "difficultyScore": 98,
+      "resources": [
+        {
+          "name": "Netflix Tech Blog",
+          "type": "Tech Articles",
+          "url": "#"
+        },
+        {
+          "name": "Netflix Culture Deck",
+          "type": "Culture",
+          "url": "#"
+        }
+      ]
+    }
+  ],
+  "codingQuestions": [
+    {
+      "id": "two-sum",
+      "title": "Two Sum",
+      "difficulty": "Easy",
+      "category": "Arrays & Hashing",
+      "acceptance": "49.8%",
+      "content": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.",
+      "constraints": "2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9",
+      "testCases": [
+        {
+          "input": {
+            "nums": [
+              2,
+              7,
+              11,
+              15
+            ],
+            "target": 9
+          },
+          "expectedOutput": [
+            0,
+            1
+          ]
+        },
+        {
+          "input": {
+            "nums": [
+              3,
+              2,
+              4
+            ],
+            "target": 6
+          },
+          "expectedOutput": [
+            1,
+            2
+          ]
+        },
+        {
+          "input": {
+            "nums": [
+              3,
+              3
+            ],
+            "target": 6
+          },
+          "expectedOutput": [
+            0,
+            1
+          ]
+        }
+      ],
+      "harness": {
+        "typescript": "__CANDIDATE_CODE__\n\nconst __testInput = __TEST_INPUT__;\nconst __result = twoSum(__testInput.nums, __testInput.target);\nconsole.log(JSON.stringify(__result));",
+        "javascript": "__CANDIDATE_CODE__\n\nconst __testInput = __TEST_INPUT__;\nconst __result = twoSum(__testInput.nums, __testInput.target);\nconsole.log(JSON.stringify(__result));"
+      }
+    },
+    {
+      "id": "q1",
+      "title": "Two Sum",
+      "difficulty": "Easy",
+      "category": "Arrays & Hashing",
+      "acceptance": "49.5%",
+      "content": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.",
+      "constraints": "2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9"
+    },
+    {
+      "id": "q2",
+      "title": "LRU Cache",
+      "difficulty": "Hard",
+      "category": "System Design / Core",
+      "acceptance": "41.2%",
+      "content": "Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.\n\nImplement the LRUCache class:\n- LRUCache(int capacity) Initialize the LRU cache with positive size capacity.\n- int get(int key) Return the value of the key if the key exists, otherwise return -1.\n- void put(int key, int value) Update the value of the key if the key exists. Otherwise, add the key-value pair to the cache. If the number of keys exceeds the capacity from this operation, evict the least recently used key.",
+      "constraints": "1 <= capacity <= 3000\n0 <= key <= 10^4\n0 <= value <= 10^5"
+    },
+    {
+      "id": "q3",
+      "title": "Merge k Sorted Lists",
+      "difficulty": "Hard",
+      "category": "Heaps / LinkedLists",
+      "acceptance": "48.8%",
+      "content": "You are given an array of k linked-lists lists, each linked-list is sorted in ascending order.\n\nMerge all the linked-lists into one sorted linked-list and return it.",
+      "constraints": "k == lists.length\n0 <= k <= 10^4\n0 <= lists[i].length <= 500"
+    },
+    {
+      "id": "q4",
+      "title": "Valid Parentheses",
+      "difficulty": "Easy",
+      "category": "Stacks",
+      "acceptance": "41.0%",
+      "content": "Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.",
+      "constraints": "1 <= s.length <= 10^4\ns consists of parentheses only"
+    },
+    {
+      "id": "q5",
+      "title": "Longest Palindromic Substring",
+      "difficulty": "Medium",
+      "category": "Dynamic Programming",
+      "acceptance": "32.4%",
+      "content": "Given a string s, return the longest palindromic substring in s.",
+      "constraints": "1 <= s.length <= 1000\ns consists of English letters and digits"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "sub_1784488338626",
+      "userId": "candidate-default-id",
+      "questionId": "two-sum",
+      "code": "function twoSum(nums: number[], target: number): number[] {\n    const map = new Map<number, number>();\n    for (let i = 0; i < nums.length; i++) {\n        const complement = target - nums[i];\n        if (map.has(complement)) {\n            return [map.get(complement)!, i];\n        }\n        map.set(nums[i], i);\n    }\n    return [];\n}",
+      "language": "cpp",
+      "status": "Accepted",
+      "runtime": 15,
+      "memory": 17199,
+      "feedback": "Your code ran correctly and satisfied all default unit-tests. (Estimated complexity: O(N) Time, O(1) Space)",
+      "createdAt": "2026-07-19T19:12:18.626Z"
+    },
+    {
+      "id": "sub_1784488340156",
+      "userId": "candidate-default-id",
+      "questionId": "two-sum",
+      "code": "function twoSum(nums: number[], target: number): number[] {\n    const map = new Map<number, number>();\n    for (let i = 0; i < nums.length; i++) {\n        const complement = target - nums[i];\n        if (map.has(complement)) {\n            return [map.get(complement)!, i];\n        }\n        map.set(nums[i], i);\n    }\n    return [];\n}",
+      "language": "cpp",
+      "status": "Accepted",
+      "runtime": 20,
+      "memory": 16763,
+      "feedback": "Your code ran correctly and satisfied all default unit-tests. (Estimated complexity: O(N) Time, O(1) Space)",
+      "createdAt": "2026-07-19T19:12:20.156Z"
+    }
+  ],
+  "mockInterviews": [],
+  "calendarEvents": [],
+  "notes": [
+    {
+      "id": "n1",
+      "title": "System Design - Rate Limiter",
+      "content": "Topics discussed: Token Bucket vs Leaky Bucket vs Sliding Window Log algorithms.\nToken bucket is best for bursty traffic because it permits instant execution of accumulated tokens. Leaky bucket smooths out requests at a constant flow rate. Redis sorted sets are perfect for implementing sliding window rate limiters.",
+      "folder": "System Design",
+      "updatedAt": "2026-07-19"
+    },
+    {
+      "id": "n2",
+      "title": "Dynamic Programming Patterns",
+      "content": "Main patterns:\n1. 0/1 Knapsack\n2. Unbounded Knapsack\n3. Fibonacci sequence\n4. Longest Common Subsequence (LCS)\n5. Shortest Path grid traversal\n\nOptimizing space complexity from O(N*M) to O(Min(N,M)) is highly appreciated during interviews.",
+      "folder": "DSA",
+      "updatedAt": "2026-07-19"
+    }
+  ],
+  "bookmarks": [],
+  "notifications": [
+    {
+      "id": "notif_1",
+      "title": "Google Hiring Drive",
+      "content": "Applications for SDE-1 positions at Google India close this weekend. Make sure to finalize your resume analysis!",
+      "isRead": false,
+      "type": "Reminder"
+    },
+    {
+      "id": "notif_2",
+      "title": "Mock Interview Review",
+      "content": "Your Meta mock interview scorecard has been analyzed by Gemini. Average score: 92%!",
+      "isRead": true,
+      "type": "System"
+    }
+  ],
+  "xp": 2350,
+  "problemsSolved": 144,
+  "resumeProfiles": [
+    {
+      "userId": "u_1784542377012_1h31nl",
+      "name": "Mehak Sharma",
+      "title": "SDE Candidate",
+      "email": "mehak@example.com",
+      "skills": "React, Node.js, TypeScript, SQL, Docker, Redis",
+      "bullets": [
+        "Implemented full-text search index filters.",
+        "Refactored API controllers to improve database response speeds."
+      ]
+    }
+  ]
+}
