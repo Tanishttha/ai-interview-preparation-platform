@@ -24,7 +24,8 @@ export default function App() {
   const [screen, setScreen] = useState<'landing' | 'auth' | 'dashboard'>('landing');
   const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
   const [user, setUser] = useState<AuthUser | null>(null);
-  
+  const [authLoading, setAuthLoading] = useState(true);
+
   // Theme state (Dark Mode by default)
   const [isDark, setIsDark] = useState(true);
 
@@ -52,15 +53,20 @@ export default function App() {
 
   // Firebase Auth state persistence sync
   useEffect(() => {
+    console.log('[App] Subscribing to auth state...');
     const unsubscribe = onAuthChanged((currentUser) => {
+      console.log('[App] onAuthChanged fired. currentUser:', currentUser, 'current screen:', screen);
       setUser(currentUser);
       if (currentUser) {
+        console.log('[App] Routing to dashboard');
         setScreen('dashboard');
-      } else {
-        setScreen('landing');
       }
+      setAuthLoading(false);
     });
-    return () => unsubscribe();
+    return () => {
+      console.log('[App] Unsubscribing auth listener (effect cleanup)');
+      unsubscribe();
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -81,10 +87,22 @@ export default function App() {
     } catch (err) {
       console.error("Logout failure:", err);
     }
+    setUser(null);
     setScreen('landing');
     setActiveTab('dashboard');
     setSelectedCompany(null);
   };
+
+  if (authLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center font-sans ${bgMain} ${textPrimary}`}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-semibold">Loading PrepAI...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={isDark ? 'dark' : ''}>
@@ -93,9 +111,7 @@ export default function App() {
         {screen === 'landing' && (
           <LandingPage
             onStart={() => setScreen('auth')}
-            onExploreCompanies={() => {
-              setScreen('auth');
-            }}
+            onExploreCompanies={() => setScreen('auth')}
             isDark={isDark}
           />
         )}
@@ -112,12 +128,11 @@ export default function App() {
         {/* MAIN FULL-STACK STYLE DASHBOARD PANEL */}
         {screen === 'dashboard' && (
           <div className="flex h-screen overflow-hidden">
-            {/* Navigational Sidebar Drawer */}
             <Sidebar
               activeTab={activeTab}
               setActiveTab={(tab) => {
                 setActiveTab(tab);
-                setSelectedCompany(null); // Reset company focus upon tab switch
+                setSelectedCompany(null);
               }}
               onLogout={handleLogout}
               isOpen={isSidebarOpen}
@@ -126,9 +141,7 @@ export default function App() {
               isDark={isDark}
             />
 
-            {/* Right side container */}
             <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
-              {/* Universal Header Navbar */}
               <Navbar
                 isDark={isDark}
                 toggleTheme={toggleTheme}
@@ -137,7 +150,6 @@ export default function App() {
                 user={user}
               />
 
-              {/* Central Scrollable Workspace Area */}
               <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                 {activeTab === 'dashboard' && (
                   <DashboardOverview
@@ -171,20 +183,13 @@ export default function App() {
                 )}
 
                 {activeTab === 'roadmap' && <PersonalizedRoadmap isDark={isDark} />}
-
                 {activeTab === 'coding' && <CodingPractice isDark={isDark} />}
-
                 {activeTab === 'hr' && <HRInterview isDark={isDark} />}
-
                 {activeTab === 'technical' && <TechnicalInterview isDark={isDark} />}
-
                 {activeTab === 'aptitude' && <AptitudeSection isDark={isDark} />}
-
                 {activeTab === 'resume' && <ResumeAnalyzer isDark={isDark} />}
-
                 {activeTab === 'mock-interview' && <MockInterviewSimulator isDark={isDark} />}
 
-                {/* Subcharts analysis dashboard */}
                 {activeTab === 'analytics' && (
                   <InterviewAnalytics
                     onNavigate={(tab) => {
@@ -196,10 +201,8 @@ export default function App() {
                 )}
 
                 {activeTab === 'career-coach' && <AICareerCoach tool="career-coach" isDark={isDark} />}
-
                 {activeTab === 'jobs' && <AICareerCoach tool="jobs" isDark={isDark} />}
 
-                {/* Bookmarks, achievements, calendars notes and pomodoros */}
                 {(['bookmarks', 'leaderboard', 'achievements', 'calendar', 'pomodoro', 'notes', 'experiences'] as const).includes(activeTab as any) && (
                   <OtherTools
                     tool={activeTab as any}
@@ -209,7 +212,6 @@ export default function App() {
                   />
                 )}
 
-                {/* Settings Tab */}
                 {activeTab === 'settings' && (
                   <div className={`max-w-2xl mx-auto p-6 border rounded-3xl space-y-6 shadow-sm ${cardBg} ${borderPrimary}`}>
                     <div className={`pb-2 border-b ${borderPrimary}`}>
@@ -290,7 +292,6 @@ export default function App() {
               </main>
             </div>
 
-            {/* Global Floating AI Coach Chat Widget */}
             <FloatingAIWidget isDark={isDark} />
           </div>
         )}

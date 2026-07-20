@@ -20,7 +20,10 @@ const PORT = Number(process.env.PORT) || 3000;
 // Security Middlewares
 app.use(helmet({
   contentSecurityPolicy: false, // Disabled for ease of iframe preview loading
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: {
+    policy: "same-origin-allow-popups"
+  }
 }));
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
