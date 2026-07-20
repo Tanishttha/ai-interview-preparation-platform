@@ -427,10 +427,47 @@ export const JOBS: Job[] = [
   { id: 'job3', title: 'SDE-1 Development', company: 'Amazon', logo: '📦', location: 'Chennai, India', salary: '22 - 28 LPA', matchScore: 81, skillsNeeded: ['Java', 'Spring Boot', 'SQL'], applyUrl: '#' }
 ];
 
-export const FAQS: FAQItem[] = [
-  { question: 'Is this platform fully integrated with realistic company trends?', answer: 'Yes, we curate lists of dynamic topics and structural rounds directly from verified employee submissions across top tier startups and tech giants.' },
-  { question: 'How does the automated speech and confidence analyzer work?', answer: 'It mimics advanced client-side models that process response latency, voice pitch variation, filler word frequency, and grammatical structure to formulate standard suggestions.' },
-  { question: 'Can I upload any PDF/DOCX resume file?', answer: 'Absolutely! Our resume analyzer scans structural section elements, detects formatting anomalies, cross-checks for missing tech tags, and generates context-rich mock interview questions immediately.' }
+export const FAQS = [
+  {
+    question: "Is PrepAI free to use?",
+    answer:
+      "Yes. You can start practicing for free, with premium features available for advanced interview preparation and AI-powered tools."
+  },
+  {
+    question: "Which companies are supported?",
+    answer:
+      "Prepare for interviews at Google, Amazon, Microsoft, Apple, Meta, Adobe, Atlassian, Flipkart, Walmart Global Tech, TCS, Infosys, Accenture, and 30+ leading companies."
+  },
+  {
+    question: "Does the AI provide real interview feedback?",
+    answer:
+      "Yes. PrepAI analyzes your answers, communication skills, confidence, filler words, speaking pace, and technical accuracy to deliver personalized feedback after every interview."
+  },
+  {
+    question: "Can I practice coding interviews?",
+    answer:
+      "Absolutely. Practice DSA, SQL, JavaScript, Python, Java, C++, aptitude, and system design questions in a realistic interview environment."
+  },
+  {
+    question: "Is my interview data secure?",
+    answer:
+      "Yes. Your interview recordings, resumes, and practice history remain private and are securely stored. We never share your personal interview data."
+  },
+  {
+    question: "Can I upload my resume?",
+    answer:
+      "Yes. Upload your resume to receive an ATS score, detailed improvement suggestions, keyword optimization, and personalized interview questions based on your profile."
+  },
+  {
+    question: "Does PrepAI help with HR and behavioral interviews?",
+    answer:
+      "Yes. Practice HR, behavioral, and leadership interviews with AI-powered coaching based on the STAR framework, along with communication and confidence analysis."
+  },
+  {
+    question: "Can beginners use PrepAI?",
+    answer:
+      "Definitely. Whether you're a first-year student, a final-year placement aspirant, or an experienced professional, PrepAI creates a personalized roadmap based on your current skill level."
+  }
 ];
 
 export const INITIAL_NOTES: Note[] = [

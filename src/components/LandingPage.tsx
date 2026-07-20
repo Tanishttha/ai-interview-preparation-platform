@@ -53,19 +53,17 @@ export default function LandingPage({ onStart, onExploreCompanies, isDark }: Lan
             </span>
           </div>
           <div className="flex items-center gap-4">
+            {/* Explore Companies button removed */}
             <button
-              onClick={onExploreCompanies}
-              className={`hidden sm:inline-flex text-xs font-bold transition-colors cursor-pointer ${
-                isDark ? 'text-slate-300 hover:text-cyan-400' : 'text-slate-700 hover:text-blue-600'
+              type="button"
+              onClick={() => {}}
+              className={`rounded-xl px-4 py-2.5 text-xs font-bold border transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
               }`}
             >
-              Explore Companies
-            </button>
-            <button
-              onClick={onStart}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold px-4.5 py-2.5 rounded-xl transition-all shadow-md shadow-blue-500/20 hover:scale-[1.02] cursor-pointer"
-            >
-              Get Started <ArrowRight className="w-4 h-4" />
+              Recruiter Portal
             </button>
           </div>
         </div>
@@ -100,16 +98,6 @@ export default function LandingPage({ onStart, onExploreCompanies, isDark }: Lan
                 className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
               >
                 Start Preparing <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                onClick={onExploreCompanies}
-                className={`px-6 py-3.5 border rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                  isDark 
-                    ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700' 
-                    : 'bg-slate-100 border-slate-200 text-slate-800 hover:bg-slate-200'
-                }`}
-              >
-                Explore Companies
               </button>
             </div>
           </div>
@@ -295,11 +283,11 @@ export default function LandingPage({ onStart, onExploreCompanies, isDark }: Lan
           </span>
         </div>
         <p>&copy; 2026 PrepAI Premium Platform. All rights reserved.</p>
-        <div className="flex justify-center gap-6 font-bold">
+        {/* <div className="flex justify-center gap-6 font-bold">
           <a href="#" className={`transition-colors ${isDark ? 'hover:text-cyan-400' : 'hover:text-blue-600'}`}>Privacy Policy</a>
           <a href="#" className={`transition-colors ${isDark ? 'hover:text-cyan-400' : 'hover:text-blue-600'}`}>Terms of Service</a>
           <a href="#" className={`transition-colors ${isDark ? 'hover:text-cyan-400' : 'hover:text-blue-600'}`}>Support Center</a>
-        </div>
+        </div> */}
       </footer>
     </div>
   );
