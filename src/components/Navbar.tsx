@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Sun, Moon, Menu } from 'lucide-react';
+import { Sun, Moon, Menu } from 'lucide-react';
 
 interface NavbarProps {
   isDark: boolean;
@@ -39,15 +39,6 @@ export default function Navbar({ isDark, toggleTheme, activeTab, onOpenSidebar, 
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Search bar */}
-        <div className="relative hidden md:block w-64">
-          <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${textSecondary}`} />
-          <input
-            type="text"
-            placeholder="Search problems, companies..."
-            className={`w-full pl-9 pr-4 py-2 border text-xs rounded-xl outline-none focus:border-blue-500 font-medium ${inputBg} ${borderPrimary}`}
-          />
-        </div>
 
         {/* Theme Toggle */}
         <button
@@ -60,26 +51,6 @@ export default function Navbar({ isDark, toggleTheme, activeTab, onOpenSidebar, 
 
         {/* Profile Card */}
         <div className={`flex items-center gap-2.5 border-l pl-4 ${borderPrimary}`}>
-          {user?.photoURL ? (
-            <img 
-              src={user.photoURL} 
-              alt={user.displayName || 'User'} 
-              className={`w-8 h-8 rounded-xl object-cover border ${borderPrimary}`}
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-8 h-8 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-extrabold rounded-xl flex items-center justify-center text-xs uppercase shadow-xs">
-              {user?.displayName ? user.displayName.charAt(0) : 'M'}
-            </div>
-          )}
-          <div className="hidden sm:block">
-            <p className={`text-xs font-bold truncate max-w-[120px] ${textPrimary}`}>
-              {user?.displayName || 'Mehak'}
-            </p>
-            <p className={`text-[9px] font-mono truncate max-w-[120px] ${textSecondary}`}>
-              {user?.email || 'NSUT Delhi'}
-            </p>
-          </div>
         </div>
       </div>
     </header>

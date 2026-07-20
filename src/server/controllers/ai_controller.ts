@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import { GoogleGenAI, Type } from '@google/genai';
 
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.GROQ_API_KEY;
 let ai: GoogleGenAI | null = null;
 
 if (apiKey) {
@@ -49,7 +49,7 @@ Provide a helpful, direct, and concise response in Markdown. Keep the tone encou
       } else {
         // Offline / No-Key Fallback
         return res.json({
-          response: `[Simulated Mode] I received your message: "${message}". To unlock real-time Gemini AI chat capabilities, please configure the \`GEMINI_API_KEY\` secret in the platform Settings panel. Currently, I am operating in mock mode to ensure local routes function correctly.`
+          response: `[Simulated Mode] I received your message: "${message}". To unlock real-time Gemini AI chat capabilities, please configure the \`GROQ_API_KEY\` secret in the platform Settings panel. Currently, I am operating in mock mode to ensure local routes function correctly.`
         });
       }
     } catch (err: any) {
@@ -95,7 +95,7 @@ Provide actionable advice about recruitment pipelines, technical skill scaling, 
 Here are 3 quick placement strategy recommendations:
 1. **Target Key Frameworks**: Deepen your skill set in React, TypeScript, and Docker since top tiers prioritize containerization.
 2. **Optimize Problem Solving**: Solve 3-5 sliding-window and graph-traversal problems on our Coding Sandbox daily to keep algorithmic fluency high.
-3. **Configure API Secrets**: Add your \`GEMINI_API_KEY\` in the Settings menu to receive live, real-time recruiting forecasts tailored to your exact CV!`
+3. **Configure API Secrets**: Add your \`GROQ_API_KEY\` in the Settings menu to receive live, real-time recruiting forecasts tailored to your exact CV!`
         });
       }
     } catch (err: any) {
@@ -291,7 +291,7 @@ For each week, define:
     if (!code) {
       return res.status(400).json({ error: 'No source code provided.' });
     }
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     try {
       if (apiKey) {
         const aiInstance = new GoogleGenAI({
@@ -325,7 +325,7 @@ Be highly professional, clear, and constructive.`;
 - **Suggestions**:
   1. Add parameter validations to avoid null pointer reference errors.
   2. Optimize memory allocations by reusing arrays or list elements where applicable.
-  3. Ensure your GEMINI_API_KEY is configured in the platform Settings to enable real-time Gemini AI code audits!`
+  3. Ensure your GROQ_API_KEY is configured in the platform Settings to enable real-time Gemini AI code audits!`
         });
       }
     } catch (err: any) {

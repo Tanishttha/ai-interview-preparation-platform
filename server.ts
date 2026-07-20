@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
+import Groq from "groq-sdk";
 import apiRouter from "./src/server/routes/api";
 import authRoutes from "./src/server/routes/auth";
 import { errorHandler } from "./src/server/middlewares/error_handler";
@@ -12,6 +13,58 @@ import { authenticateJWT, AuthenticatedRequest } from "./src/server/middlewares/
 import { readDb } from "./src/server/repositories/db_fallback";
 import { scrapeCompanyData } from "./src/server/services/scraper_service";
 
+class GoogleGenAI {
+  private groq: Groq;
+
+  constructor({ apiKey }: { apiKey: string }) {
+    this.groq = new Groq({ apiKey });
+  }
+
+  models = {
+    generateContent: async ({ contents, config }: any) => {
+      const messages: any[] = [];
+
+      if (config?.systemInstruction) {
+        messages.push({
+          role: "system",
+          content: config.systemInstruction
+        });
+      }
+
+      let userContent = "";
+
+      if (Array.isArray(contents)) {
+        userContent = contents.map((item: any) => {
+          if (typeof item === "string") return item;
+
+          if (item?.parts) {
+            return item.parts
+              .map((part: any) => part.text)
+              .join(" ");
+          }
+
+          return "";
+        }).join("\n");
+      } else {
+        userContent = contents;
+      }
+
+      messages.push({
+        role: "user",
+        content: userContent
+      });
+
+      const completion = await this.groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages
+      });
+
+      return {
+        text: completion.choices[0]?.message?.content || ""
+      };
+    }
+  };
+}
 dotenv.config();
 
 const app = express();
@@ -114,10 +167,10 @@ app.post("/api/interviews", (req, res) => {
 // 1. AI Career Coach
 app.post("/api/ai/coach", async (req, res) => {
   const { message, history } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return res.json({
-      response: "⚠️ **Gemini API Key is missing!**\nPlease add your `GEMINI_API_KEY` in the **Settings > Secrets** panel to enable live, Google-Search grounded AI Career Coaching.\n\nTo prep for elite tech companies, specialize in Trees, Dynamic Programming, and System Design patterns. Solve at least 150 standard DSA problems!"
+      response: "⚠️ **Gemini API Key is missing!**\nPlease add your `GROQ_API_KEY` in the **Settings > Secrets** panel to enable live, Google-Search grounded AI Career Coaching.\n\nTo prep for elite tech companies, specialize in Trees, Dynamic Programming, and System Design patterns. Solve at least 150 standard DSA problems!"
     });
   }
 
@@ -154,7 +207,7 @@ app.post("/api/ai/coach", async (req, res) => {
 // 2. Chatbot Widget
 app.post("/api/ai/chat", async (req, res) => {
   const { message, history } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return res.json({
       response: "⚠️ **Gemini API Key is missing!** Provide it in settings to enable live chat.\n\nI can help you review algorithms, design scale architectures, mock questions, and debug codebase segments."
@@ -167,7 +220,31 @@ app.post("/api/ai/chat", async (req, res) => {
       httpOptions: { headers: { "User-Agent": "aistudio-build" } }
     });
 
-    const systemInstruction = "You are PrepAI, a coding and interview assistant. Deliver crisp, structured answers with clean syntax highlights.";
+const systemInstruction = `
+
+You are PrepAI, an advanced AI interview preparation assistant.
+
+Help users with:
+
+- Data Structures and Algorithms
+
+- Coding problems
+
+- System Design
+
+- Resume improvement
+
+- HR interview preparation
+
+- Technical interview preparation
+
+Give concise, practical answers.
+
+Do not ask users to select numbered topics unless they request guidance.
+
+Explain with examples and code when useful.
+
+`;
     const contents = history ? [
       ...history.map((h: any) => ({
         role: h.sender === 'user' ? 'user' : 'model',
@@ -191,7 +268,7 @@ app.post("/api/ai/chat", async (req, res) => {
 // 3. Code Review
 app.post("/api/ai/review-code", async (req, res) => {
   const { code, problemId } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return res.json({
       passed: true,
@@ -235,7 +312,7 @@ app.post("/api/ai/review-code", async (req, res) => {
 // 4. SDE & HR Live Mock Interviews
 app.post("/api/ai/interview", async (req, res) => {
   const { mode, history, message } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
     const nextQ = mode === "hr"
@@ -297,7 +374,7 @@ app.post("/api/ai/interview", async (req, res) => {
 // 1. AI Resume Bullet Point Rewriter (STAR Method)
 app.post("/api/ai/resume/rewrite", async (req, res) => {
   const { text } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
     return res.json({
@@ -343,7 +420,7 @@ app.post("/api/ai/resume/rewrite", async (req, res) => {
 // 2. ML Profile Selection Predictor (Selection Probability Dashboard)
 app.post("/api/ai/company/eligibility", async (req, res) => {
   const { cgpa, branch, skills, target_company_id, problemsSolved, resumeScore } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   // Real-time statistical algorithm as baseline
   const dsaWeight = Math.min((problemsSolved || 0) / 300, 1.0) * 40; // max 40 points
@@ -402,7 +479,7 @@ app.post("/api/ai/company/eligibility", async (req, res) => {
 // 3. Personalized weak-topic learning path dynamic generator
 app.post("/api/ai/learning-path", async (req, res) => {
   const { weakTopics, targetCompany } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
     return res.json({
@@ -624,7 +701,7 @@ app.post("/api/ai/experiences", (req, res) => {
 // 7. AI Premium Audio Transcription using Gemini 3.5 Flash
 app.post("/api/ai/transcribe", async (req, res) => {
   const { audio, mimeType } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!audio) {
     return res.status(400).json({ error: "No audio stream data provided." });
@@ -633,7 +710,7 @@ app.post("/api/ai/transcribe", async (req, res) => {
   if (!apiKey) {
     // Elegant simulated transcription when API key is not present
     return res.json({
-      transcript: "This is a simulated high-fidelity transcription response. Configure your GEMINI_API_KEY inside Settings > Secrets to activate real-time Gemini 3.5 Flash voice capabilities."
+      transcript: "This is a simulated high-fidelity transcription response. Configure your GROQ_API_KEY inside Settings > Secrets to activate real-time Gemini 3.5 Flash voice capabilities."
     });
   }
 

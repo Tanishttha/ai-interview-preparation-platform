@@ -19,7 +19,7 @@ export class ResumeController {
       Projects: PrepAI Interview Sandbox platform. Created live video mocks.
     `;
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
 
     try {
       let atsScore = 88;
@@ -177,7 +177,7 @@ export class ResumeController {
       return res.status(400).json({ error: "No text provided to rewrite." });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     let rewrittenBullets = [
       `• Re-architected full-stack query indexes by introducing consistent hashing partitions, mitigating query lag by 45% based on "${text}".`,
       `• Engineered multi-tenant authorization boundaries using OAuth 2.0 and gRPC protocol buffers, reducing response payload sizes by 3.2x based on "${text}".`,
@@ -257,7 +257,7 @@ export class ResumeController {
       return res.status(400).json({ error: "No job description provided for evaluation." });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
 
     let matchScore = 65;
     let potentialScore = 92;

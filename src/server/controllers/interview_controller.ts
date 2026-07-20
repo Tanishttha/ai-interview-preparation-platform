@@ -35,7 +35,7 @@ export class InterviewController {
 
   async simulateInterviewResponse(req: AuthenticatedRequest, res: Response) {
     const { company, difficulty, role, transcripts, jobDescription, faceMetrics } = req.body;
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
 
     let feedback = "Your technical delivery was robust. You cleanly explained sliding window bounds and demonstrated comfortable verbal fluency. Focus slightly on explaining the trade-offs of consistent hash rings versus single node instances.";
     let report = {

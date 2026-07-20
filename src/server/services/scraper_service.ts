@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { readDb, writeDb, prisma, isPrismaActive } from "../config/db";
 
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.GROQ_API_KEY;
 let ai: GoogleGenAI | null = null;
 if (apiKey) {
   ai = new GoogleGenAI({
@@ -76,7 +76,7 @@ export async function scrapeCompanyData(companyName: string, url?: string): Prom
 
   // 2. Generate grounded content or fallback if Gemini API is not configured
   if (!ai) {
-    console.warn("GEMINI_API_KEY is not defined. Returning highly realistic mock-scraped patterns.");
+    console.warn("GROQ_API_KEY is not defined. Returning highly realistic mock-scraped patterns.");
     const fallbackResult: ScrapedDataResult = {
       companyName,
       interviewDifficulty: "Hard",

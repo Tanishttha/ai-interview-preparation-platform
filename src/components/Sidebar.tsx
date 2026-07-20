@@ -1,7 +1,7 @@
 import { 
   LayoutDashboard, Building2, Map, Code2, MessageSquare, Laptop, 
   BrainCircuit, FileBarChart2, PlayCircle, BarChart3, Trophy, Bookmark, 
-  Calendar as CalendarIcon, Settings, LogOut, ShieldCheck, Timer, NotebookTabs, 
+  Calendar as CalendarIcon, LogOut, ShieldCheck, Timer, NotebookTabs, 
   Compass, Sparkles, Briefcase, X 
 } from 'lucide-react';
 
@@ -58,7 +58,6 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, isOpen, set
     { id: 'pomodoro', label: 'Study Timer', icon: <Timer className="w-4 h-4" /> },
     { id: 'notes', label: 'Notes Section', icon: <NotebookTabs className="w-4 h-4" /> },
     { id: 'experiences', label: 'Community Feed', icon: <MessageSquare className="w-4 h-4" /> },
-    { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ] as const;
 
   const handleTabClick = (tabId: DashboardTab) => {

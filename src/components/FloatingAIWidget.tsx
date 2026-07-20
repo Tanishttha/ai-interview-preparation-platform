@@ -116,7 +116,12 @@ export default function FloatingAIWidget({ isDark = false }: FloatingAIWidgetPro
                       PrepAI Helper
                     </span>
                   )}
-                  <p className="text-[11px] leading-relaxed">{msg.text}</p>
+                  <p className="text-[11px] leading-relaxed whitespace-pre-wrap">
+                    {msg.text
+                      .replace(/```[a-zA-Z]*\n?/g, '')
+                      .replace(/```/g, '')
+                      .replace(/\*\*/g, '')}
+                  </p>
                 </div>
               );
             })}
