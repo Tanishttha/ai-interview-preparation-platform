@@ -1,6 +1,6 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
 }
 
 generator client {
@@ -10,7 +10,7 @@ generator client {
 
 // 1. AUTHENTICATION & USER MANAGEMENT
 model User {
-  id            String    @id @default(uuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   email         String    @unique
   firebaseUid   String?   @unique
   passwordHash  String?
@@ -48,17 +48,17 @@ enum Role {
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   token     String   @unique
-  userId    String
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
 
 model Profile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @unique @db.ObjectId
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   college        String?
   graduationYear Int?
@@ -73,8 +73,8 @@ model Profile {
 }
 
 model Education {
-  id           String    @id @default(uuid())
-  userId       String
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String    @db.ObjectId
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   institution  String
   degree       String
@@ -86,8 +86,8 @@ model Education {
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  userId      String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
   description String
@@ -98,8 +98,8 @@ model Project {
 }
 
 model Skill {
-  id          String   @id @default(uuid())
-  userId      String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   proficiency String   @default("Beginner") // Beginner, Intermediate, Expert
@@ -108,8 +108,8 @@ model Skill {
 }
 
 model Resume {
-  id             String   @id @default(uuid())
-  userId         String
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   fileName       String
   fileUrl        String?
@@ -121,8 +121,8 @@ model Resume {
 }
 
 model Achievement {
-  id          String   @id @default(uuid())
-  userId      String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
   issuer      String?
@@ -133,7 +133,7 @@ model Achievement {
 
 // 2. COMPANIES MODULE
 model Company {
-  id             String           @id @default(uuid())
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
   name           String           @unique
   logoUrl        String?
   difficulty     String           @default("Medium") // Easy, Medium, Hard
@@ -146,8 +146,8 @@ model Company {
 }
 
 model InterviewRound {
-  id          String   @id @default(uuid())
-  companyId   String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId   String   @db.ObjectId
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   roundNumber Int
   name        String   // e.g., "Screening", "Technical DSA 1", "System Design", "HR"
@@ -158,7 +158,7 @@ model InterviewRound {
 
 // 3. CODING MODULE
 model CodingQuestion {
-  id          String       @id @default(uuid())
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   difficulty  String       @default("Medium") // Easy, Medium, Hard
   category    String       @default("Algorithms")
@@ -174,10 +174,10 @@ model CodingQuestion {
 }
 
 model Submission {
-  id         String         @id @default(uuid())
-  userId     String
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String         @db.ObjectId
   user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  questionId String
+  questionId String         @db.ObjectId
   question   CodingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   code       String
   language   String         @default("typescript")
@@ -190,8 +190,8 @@ model Submission {
 
 // 4. INTERVIEW MODULE (Mock Interviews)
 model MockInterview {
-  id          String             @id @default(uuid())
-  userId      String
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String             @db.ObjectId
   user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyName String
   role        String             @default("Software Engineer")
@@ -203,8 +203,8 @@ model MockInterview {
 }
 
 model InterviewTranscript {
-  id              String        @id @default(uuid())
-  mockInterviewId String
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  mockInterviewId String        @db.ObjectId
   mockInterview   MockInterview @relation(fields: [mockInterviewId], references: [id], onDelete: Cascade)
   speaker         String        // "Interviewer", "Candidate"
   text            String
@@ -215,8 +215,8 @@ model InterviewTranscript {
 
 // 5. ANALYTICS MODULE
 model AnalyticsProgress {
-  id             String   @id @default(uuid())
-  userId         String
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date           DateTime @default(now())
   xpGained       Int      @default(0)
@@ -228,8 +228,8 @@ model AnalyticsProgress {
 }
 
 model LeaderboardEntry {
-  id          String   @id @default(uuid())
-  userId      String   @unique
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @unique @db.ObjectId
   userName    String
   userCollege String?
   xp          Int      @default(0)
@@ -239,8 +239,8 @@ model LeaderboardEntry {
 
 // 6. GENERAL PREPARATION UTILITIES
 model Bookmark {
-  id         String   @id @default(uuid())
-  userId     String
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   itemType   String   // "Question", "Company", "Resource"
   itemId     String
@@ -250,8 +250,8 @@ model Bookmark {
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   content   String
@@ -261,8 +261,8 @@ model Notification {
 }
 
 model CalendarEvent {
-  id          String   @id @default(uuid())
-  userId      String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
   date        String
@@ -272,8 +272,8 @@ model CalendarEvent {
 }
 
 model Note {
-  id        String   @id @default(uuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   content   String

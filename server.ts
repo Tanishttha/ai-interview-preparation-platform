@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import apiRouter from "./src/server/routes/api";
+import authRoutes from "./src/server/routes/auth";
 import { errorHandler } from "./src/server/middlewares/error_handler";
 import { authenticateJWT, AuthenticatedRequest } from "./src/server/middlewares/auth";
 import { readDb } from "./src/server/repositories/db_fallback";
@@ -662,6 +663,7 @@ app.post("/api/ai/transcribe", async (req, res) => {
 
 
 // --- MOUNT THE ENTIRE MODULAR PRODUCTION READY ROUTER ---
+app.use("/api/auth", authRoutes);
 app.use("/api", apiRouter);
 
 // Global Error Handler
