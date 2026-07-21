@@ -1,7 +1,8 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import prisma from '../prisma';
-import { readDb, writeDb } from '../config/db';
+// TODO: Migrate Bookmarks and Notifications to Prisma.
+// They currently depend on readDb()/writeDb() and must be converted before the JSON database can be removed.
 
 export class UtilityController {
   // Calendar Events
@@ -206,8 +207,16 @@ export class UtilityController {
   // Bookmarks Module
   async getBookmarks(req: AuthenticatedRequest, res: Response) {
     try {
-      const db = readDb();
-      res.json(db.bookmarks || []);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      const user = await prisma.user.findFirst({ where: { firebaseUid } });
+      if (!user) {
+        return res.json([]);
+      }
+
+      const bookmarks = await prisma.bookmark.findMany({ where: { userId: user.id } });
+      res.json(bookmarks);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -217,16 +226,34 @@ export class UtilityController {
     const { companyId } = req.body;
     if (!companyId) return res.status(400).json({ error: "Missing companyId" });
     try {
-      const db = readDb();
-      db.bookmarks = db.bookmarks || [];
-      const index = db.bookmarks.indexOf(companyId);
-      if (index === -1) {
-        db.bookmarks.push(companyId);
-      } else {
-        db.bookmarks.splice(index, 1);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      let user = await prisma.user.findFirst({ where: { firebaseUid } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            firebaseUid,
+            email: req.user?.email ?? `${firebaseUid}@firebase.local`,
+            name: req.user?.name ?? 'User'
+          }
+        });
       }
-      writeDb(db);
-      res.json({ bookmarks: db.bookmarks });
+
+      const existingBookmark = await prisma.bookmark.findFirst({
+        where: { userId: user.id, companyId }
+      });
+
+      if (existingBookmark) {
+        await prisma.bookmark.delete({ where: { id: existingBookmark.id } });
+      } else {
+        await prisma.bookmark.create({
+          data: { userId: user.id, companyId }
+        });
+      }
+
+      const bookmarks = await prisma.bookmark.findMany({ where: { userId: user.id } });
+      res.json({ bookmarks });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -235,8 +262,20 @@ export class UtilityController {
   // Notifications Module
   async getNotifications(req: AuthenticatedRequest, res: Response) {
     try {
-      const db = readDb();
-      res.json(db.notifications || []);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      const user = await prisma.user.findFirst({ where: { firebaseUid } });
+      if (!user) {
+        return res.json([]);
+      }
+
+      const notifications = await prisma.notification.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      res.json(notifications);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -245,13 +284,17 @@ export class UtilityController {
   async markNotificationRead(req: AuthenticatedRequest, res: Response) {
     const { id } = req.params;
     try {
-      const db = readDb();
-      db.notifications = db.notifications || [];
-      const index = db.notifications.findIndex((n: any) => n.id === id);
-      if (index !== -1) {
-        db.notifications[index].isRead = true;
-      }
-      writeDb(db);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      const user = await prisma.user.findFirst({ where: { firebaseUid } });
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      await prisma.notification.updateMany({
+        where: { id, userId: user.id },
+        data: { isRead: true }
+      });
+
       res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
