@@ -99,7 +99,31 @@ Here are 3 quick placement strategy recommendations:
     }
   }
 
-  // 3. AI Personalized Roadmap (/api/ai/roadmap)
+  // 3. Interview Experiences (/api/ai/experiences)
+  async getExperiences(req: AuthenticatedRequest, res: Response) {
+    return res.json([]);
+  }
+
+  async shareExperience(req: AuthenticatedRequest, res: Response) {
+    const { title, company, role, difficulty, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ error: 'Title and content are required.' });
+    }
+
+    return res.status(201).json({
+      id: Date.now().toString(),
+      title,
+      company,
+      role,
+      difficulty,
+      content,
+      createdAt: new Date().toISOString(),
+      userId: req.user?.uid ?? null,
+    });
+  }
+
+  // 4. AI Personalized Roadmap (/api/ai/roadmap)
   async generateRoadmap(req: AuthenticatedRequest, res: Response) {
     const { targetCompany, targetRole, currentSkills, collegeYear, timeAvailable } = req.body;
     if (!targetCompany || !targetRole) {
@@ -219,7 +243,7 @@ Example:
     }
   }
 
-  // 4. AI Google Calendar Remind/ICS Generation (/api/ai/calendar/remind)
+  // 5. AI Google Calendar Remind/ICS Generation (/api/ai/calendar/remind)
   async scheduleRemind(req: AuthenticatedRequest, res: Response) {
     const { title, company, date, time, durationMinutes } = req.body;
     if (!date || !time) {
@@ -297,7 +321,7 @@ Example:
     }
   }
 
-  // 5. AI Code Review (/api/ai/review)
+  // 6. AI Code Review (/api/ai/review)
   async reviewCode(req: AuthenticatedRequest, res: Response) {
     const { code, language, problemTitle } = req.body;
     if (!code) {

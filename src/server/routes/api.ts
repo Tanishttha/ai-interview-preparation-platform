@@ -11,6 +11,7 @@ import { AIController } from '../controllers/ai_controller';
 import { authenticateJWT, authorizeRoles } from '../middlewares/auth';
 
 const router = Router();
+console.log('[API] apiRouter loaded');
 
 const userCtrl = new UserController();
 const companyCtrl = new CompanyController();
@@ -21,6 +22,24 @@ const analyticsCtrl = new AnalyticsController();
 const utilityCtrl = new UtilityController();
 const scraperCtrl = new ScraperController();
 const aiCtrl = new AIController();
+
+console.log('[API DEBUG]', {
+  authenticateJWT: typeof authenticateJWT,
+  authorizeRoles: typeof authorizeRoles,
+
+  user_getProfile: typeof userCtrl.getProfile,
+  analytics_getUserProgress: typeof analyticsCtrl.getUserProgress,
+  utility_getCalendar: typeof utilityCtrl.getCalendar,
+  scraper_getScrapedHistory: typeof scraperCtrl.getScrapedHistory,
+
+  ai_getExperiences: typeof aiCtrl.getExperiences,
+  ai_shareExperience: typeof aiCtrl.shareExperience,
+  ai_chat: typeof aiCtrl.chat,
+  ai_coach: typeof aiCtrl.coach,
+  ai_generateRoadmap: typeof aiCtrl.generateRoadmap,
+  ai_scheduleRemind: typeof aiCtrl.scheduleRemind,
+  ai_reviewCode: typeof aiCtrl.reviewCode,
+});
 
 // 1. AUTHENTICATION
 // Auth itself is handled client-side by Firebase Auth (src/lib/firebase.ts).
@@ -84,7 +103,12 @@ router.put('/notifications/:id/read', authenticateJWT, utilityCtrl.markNotificat
 router.post('/ai/scrape', authenticateJWT, scraperCtrl.triggerScrape);
 router.get('/ai/scrape/history', authenticateJWT, scraperCtrl.getScrapedHistory);
 
-// 10. CORE AI SERVICES
+// 10. INTERVIEW EXPERIENCES
+console.log('[API] Registering /api/ai/experiences routes');
+router.get('/ai/experiences', authenticateJWT, aiCtrl.getExperiences);
+router.post('/ai/experiences', authenticateJWT, aiCtrl.shareExperience);
+
+// 11. CORE AI SERVICES
 router.post('/ai/chat', authenticateJWT, aiCtrl.chat);
 router.post('/ai/coach', authenticateJWT, aiCtrl.coach);
 router.post('/ai/roadmap', authenticateJWT, aiCtrl.generateRoadmap);

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Bookmark, Calendar as CalendarIcon, Timer, Trophy, ShieldCheck, 
-  Sparkles, Plus, Folder, Search, Check, RefreshCw, MessageSquare, 
-  Send, Layers 
+  Plus, Folder, Search, Check, RefreshCw, MessageSquare, 
+  Send
 } from 'lucide-react';
 import { ACHIEVEMENTS, LEADERBOARD_ENTRIES } from '../data';
 import { Note } from '../types';
@@ -220,8 +220,7 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
     }
   };
 
-  // --- Experiences (Community Feed) & RAG Patterns State ---
-  const [experiencesTab, setExperiencesTab] = useState<'feed' | 'rag'>('feed');
+  // --- Experiences (Community Feed) State ---
   const [experiences, setExperiences] = useState<any[]>([]);
   const [isExperiencesLoading, setIsExperiencesLoading] = useState(false);
 
@@ -233,43 +232,21 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
   const [shareContent, setShareContent] = useState('');
   const [isSharing, setIsSharing] = useState(false);
 
-  // RAG Pattern Scraper form
-  const [ragCompany, setRagCompany] = useState('Netflix');
-  const [customCompany, setCustomCompany] = useState('');
-  const [customUrl, setCustomUrl] = useState('');
-  const [isRaging, setIsRaging] = useState(false);
-  const [scrapedHistory, setScrapedHistory] = useState<any[]>([]);
-  const [ragPatterns, setRagPatterns] = useState<any>({
-    company: "Netflix",
-    hiringTrends: "Stresses system architecture boundaries, high availability, and structural microservice failure loops.",
-    focusSkills: ["System Design", "Scalability", "DP Optimization"],
-    recentQuestions: [
-      "Design a real-time analytics pipeline that processes billions of ticks per second.",
-      "Implement a lock-free ring buffer for zero-latency task queues."
-    ],
-    RAGcontext: "Seeded initial knowledge cache."
-  });
-
-  const fetchScrapedHistory = async () => {
-    try {
-      const res = await apiFetch('/api/ai/scrape/history');
-      if (res.ok) {
-        const data = await res.json();
-        setScrapedHistory(data);
-      }
-    } catch (err) {
-      console.error('Error fetching scraped logs:', err);
-    }
-  };
-
   const fetchExperiences = async () => {
     setIsExperiencesLoading(true);
     try {
       const res = await apiFetch('/api/ai/experiences');
+      if (!res.ok) {
+        console.error('Failed to fetch experiences:', res.status, res.statusText);
+        setExperiences([]);
+        return;
+      }
+
       const data = await res.json();
-      setExperiences(data);
+      setExperiences(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching experiences:', err);
+      setExperiences([]);
     } finally {
       setIsExperiencesLoading(false);
     }
@@ -278,7 +255,6 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
   useEffect(() => {
     if (tool === 'experiences') {
       fetchExperiences();
-      fetchScrapedHistory();
     }
   }, [tool]);
 
@@ -307,42 +283,6 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
       console.error(err);
     } finally {
       setIsSharing(false);
-    }
-  };
-
-  const handleRunRagScraper = async () => {
-    setIsRaging(true);
-    try {
-      const bodyPayload = customCompany 
-        ? { companyName: customCompany, url: customUrl }
-        : { companyName: ragCompany };
-      
-      const endpoint = customCompany ? '/api/ai/scrape' : '/api/ai/scrape-patterns';
-
-      const res = await apiFetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyPayload)
-      });
-      
-      const responseData = await res.json();
-      const actualData = responseData.data || responseData;
-      
-      setRagPatterns({
-        company: actualData.company || actualData.companyName,
-        hiringTrends: actualData.hiringTrends || actualData.interviewProcess,
-        recentQuestions: actualData.recentQuestions || [],
-        focusSkills: actualData.focusSkills || actualData.technicalTopics || [],
-        RAGcontext: actualData.RAGcontext || `Live grounded context scraped from careers site and indexed on ${actualData.scrapedAt || new Date().toISOString().split('T')[0]}.`
-      });
-
-      setCustomCompany('');
-      setCustomUrl('');
-      fetchScrapedHistory();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsRaging(false);
     }
   };
 
@@ -784,349 +724,138 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
         </div>
       )}
 
-      {/* 7. EXPERIENCES & RAG INTERVIEW PATTERN SECTION */}
+      {/* 7. EXPERIENCES SECTION */}
       {tool === 'experiences' && (
         <div className="space-y-6">
-          <div className={`flex justify-between items-center p-1.5 border rounded-2xl max-w-sm mx-auto ${
-            isDark ? 'bg-[#161B22] border-slate-800' : 'bg-slate-50 border-slate-200'
-          }`}>
-            <button
-              onClick={() => setExperiencesTab('feed')}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-xl cursor-pointer transition-all ${
-                experiencesTab === 'feed'
-                  ? (isDark ? 'bg-cyan-900/40 text-cyan-400 border border-cyan-500/30 shadow-md' : 'bg-blue-100 text-blue-800 border border-blue-200 shadow-xs')
-                  : textSecondary
-              }`}
-            >
-              Candidate Feed
-            </button>
-            <button
-              onClick={() => setExperiencesTab('rag')}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-xl cursor-pointer transition-all ${
-                experiencesTab === 'rag'
-                  ? (isDark ? 'bg-cyan-900/40 text-cyan-400 border border-cyan-500/30 shadow-md' : 'bg-blue-100 text-blue-800 border border-blue-200 shadow-xs')
-                  : textSecondary
-              }`}
-            >
-              AI RAG Pattern Hub
-            </button>
-          </div>
-
-          {experiencesTab === 'feed' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left panel: Experiences List */}
-              <div className={`lg:col-span-8 p-6 border rounded-3xl space-y-4 shadow-sm ${cardBg} ${borderPrimary}`}>
-                <div className={`pb-2 border-b ${borderPrimary}`}>
-                  <h3 className={`font-bold text-base flex items-center gap-2 ${textPrimary}`}>
-                    <MessageSquare className="w-5 h-5 text-blue-500" /> Interview Experience Arena
-                  </h3>
-                </div>
-
-                {isExperiencesLoading ? (
-                  <div className="py-12 text-center space-y-2">
-                    <RefreshCw className="w-6 h-6 text-blue-500 animate-spin mx-auto" />
-                    <p className={`text-xs font-mono ${textSecondary}`}>Fetching shared experiences from corporate memory...</p>
-                  </div>
-                ) : experiences.length === 0 ? (
-                  <p className={`text-center text-xs font-medium py-8 ${textSecondary}`}>No experiences shared yet. Be the first to post using the form on the right!</p>
-                ) : (
-                  <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
-                    {experiences.map((exp: any) => (
-                      <div key={exp.id} className={`p-5 border rounded-3xl space-y-3 ${subCardBg} ${borderPrimary}`}>
-                        <div className="flex justify-between items-start flex-wrap gap-2">
-                          <div className="space-y-0.5">
-                            <span className={`text-[9px] font-bold uppercase font-mono tracking-wider ${
-                              isDark ? 'text-cyan-400' : 'text-blue-700'
-                            }`}>
-                              {exp.company} • {exp.role}
-                            </span>
-                            <h4 className={`font-bold text-sm ${textPrimary}`}>{exp.title}</h4>
-                          </div>
-                          <span className={`px-2 py-0.5 border rounded text-[9px] font-bold font-mono uppercase ${
-                            exp.difficulty === 'Hard'
-                              ? (isDark ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-rose-50 text-rose-800 border-rose-200')
-                              : (isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-800 border-amber-200')
-                          }`}>
-                            {exp.difficulty} Difficulty
-                          </span>
-                        </div>
-                        <p className={`text-xs font-medium leading-relaxed whitespace-pre-wrap ${
-                          isDark ? 'text-slate-300' : 'text-slate-700'
-                        }`}>
-                          {exp.content}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left panel: Experiences List */}
+            <div className={`lg:col-span-8 p-6 border rounded-3xl space-y-4 shadow-sm ${cardBg} ${borderPrimary}`}>
+              <div className={`pb-2 border-b ${borderPrimary}`}>
+                <h3 className={`font-bold text-base flex items-center gap-2 ${textPrimary}`}>
+                  <MessageSquare className="w-5 h-5 text-blue-500" /> Interview Experience Arena
+                </h3>
               </div>
 
-              {/* Right panel: Post form */}
-              <div className={`lg:col-span-4 p-6 border rounded-3xl space-y-4 shadow-sm ${cardBg} ${borderPrimary}`}>
-                <div className={`pb-1.5 border-b ${borderPrimary}`}>
-                  <h4 className={`font-bold text-sm ${textPrimary}`}>Share Your Interview Round</h4>
+              {isExperiencesLoading ? (
+                <div className="py-12 text-center space-y-2">
+                  <RefreshCw className="w-6 h-6 text-blue-500 animate-spin mx-auto" />
+                  <p className={`text-xs font-mono ${textSecondary}`}>Fetching shared experiences from corporate memory...</p>
+                </div>
+              ) : experiences.length === 0 ? (
+                <p className={`text-center text-xs font-medium py-8 ${textSecondary}`}>No experiences shared yet. Be the first to post using the form on the right!</p>
+              ) : (
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                  {experiences.map((exp: any) => (
+                    <div key={exp.id} className={`p-5 border rounded-3xl space-y-3 ${subCardBg} ${borderPrimary}`}>
+                      <div className="flex justify-between items-start flex-wrap gap-2">
+                        <div className="space-y-0.5">
+                          <span className={`text-[9px] font-bold uppercase font-mono tracking-wider ${
+                            isDark ? 'text-cyan-400' : 'text-blue-700'
+                          }`}>
+                            {exp.company} • {exp.role}
+                          </span>
+                          <h4 className={`font-bold text-sm ${textPrimary}`}>{exp.title}</h4>
+                        </div>
+                        <span className={`px-2 py-0.5 border rounded text-[9px] font-bold font-mono uppercase ${
+                          exp.difficulty === 'Hard'
+                            ? (isDark ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-rose-50 text-rose-800 border-rose-200')
+                            : (isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-800 border-amber-200')
+                        }`}>
+                          {exp.difficulty} Difficulty
+                        </span>
+                      </div>
+                      <p className={`text-xs font-medium leading-relaxed whitespace-pre-wrap ${
+                        isDark ? 'text-slate-300' : 'text-slate-700'
+                      }`}>
+                        {exp.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right panel: Post form */}
+            <div className={`lg:col-span-4 p-6 border rounded-3xl space-y-4 shadow-sm ${cardBg} ${borderPrimary}`}>
+              <div className={`pb-1.5 border-b ${borderPrimary}`}>
+                <h4 className={`font-bold text-sm ${textPrimary}`}>Share Your Interview Round</h4>
+              </div>
+
+              <form onSubmit={handleShareExperience} className="space-y-3.5 text-xs font-medium">
+                <div className="space-y-1">
+                  <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Title</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Google SDE-2 Phone Screen"
+                    value={shareTitle}
+                    onChange={(e) => setShareTitle(e.target.value)}
+                    className={`w-full p-2 border rounded-xl outline-none focus:border-blue-500 ${inputBg} ${borderPrimary}`}
+                  />
                 </div>
 
-                <form onSubmit={handleShareExperience} className="space-y-3.5 text-xs font-medium">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Title</span>
+                    <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Company</span>
+                    <select
+                      value={shareCompany}
+                      onChange={(e) => setShareCompany(e.target.value)}
+                      className={`w-full p-2 border rounded-xl outline-none focus:border-blue-500 cursor-pointer ${inputBg} ${borderPrimary}`}
+                    >
+                      <option value="Google">Google</option>
+                      <option value="Microsoft">Microsoft</option>
+                      <option value="Amazon">Amazon</option>
+                      <option value="Netflix">Netflix</option>
+                      <option value="Uber">Uber</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Role</span>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Google SDE-2 Phone Screen"
-                      value={shareTitle}
-                      onChange={(e) => setShareTitle(e.target.value)}
+                      value={shareRole}
+                      onChange={(e) => setShareRole(e.target.value)}
                       className={`w-full p-2 border rounded-xl outline-none focus:border-blue-500 ${inputBg} ${borderPrimary}`}
                     />
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Company</span>
-                      <select
-                        value={shareCompany}
-                        onChange={(e) => setShareCompany(e.target.value)}
-                        className={`w-full p-2 border rounded-xl outline-none focus:border-blue-500 cursor-pointer ${inputBg} ${borderPrimary}`}
-                      >
-                        <option value="Google">Google</option>
-                        <option value="Microsoft">Microsoft</option>
-                        <option value="Amazon">Amazon</option>
-                        <option value="Netflix">Netflix</option>
-                        <option value="Uber">Uber</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Role</span>
-                      <input
-                        type="text"
-                        required
-                        value={shareRole}
-                        onChange={(e) => setShareRole(e.target.value)}
-                        className={`w-full p-2 border rounded-xl outline-none focus:border-blue-500 ${inputBg} ${borderPrimary}`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Round Difficulty</span>
-                    <select
-                      value={shareDifficulty}
-                      onChange={(e) => setShareDifficulty(e.target.value)}
-                      className={`w-full p-2 border rounded-xl outline-none focus:border-blue-500 font-bold cursor-pointer ${inputBg} ${borderPrimary}`}
-                    >
-                      <option value="Easy">Easy</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Hard">Hard</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Content &amp; Questions asked</span>
-                    <textarea
-                      required
-                      placeholder="List the technical and coding problems asked, along with behavioral details..."
-                      value={shareContent}
-                      onChange={(e) => setShareContent(e.target.value)}
-                      className={`w-full h-24 p-2 border rounded-xl outline-none focus:border-blue-500 resize-none font-medium leading-relaxed ${inputBg} ${borderPrimary}`}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSharing}
-                    className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                <div className="space-y-1">
+                  <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Round Difficulty</span>
+                  <select
+                    value={shareDifficulty}
+                    onChange={(e) => setShareDifficulty(e.target.value)}
+                    className={`w-full p-2 border rounded-xl outline-none focus:border-blue-500 font-bold cursor-pointer ${inputBg} ${borderPrimary}`}
                   >
-                    {isSharing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                    Publish Experience
-                  </button>
-                </form>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column: Form & History */}
-              <div className="lg:col-span-5 space-y-5">
-                {/* Scraping Panel */}
-                <div className={`p-5 border rounded-3xl space-y-4 shadow-sm ${cardBg} ${borderPrimary}`}>
-                  <div className="space-y-1">
-                    <span className="text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1 uppercase tracking-wider font-mono">
-                      <Sparkles className="w-3.5 h-3.5 animate-pulse" /> Live Scraper Console
-                    </span>
-                    <h3 className={`text-base font-bold ${textPrimary}`}>Run Corporate Intelligence</h3>
-                    <p className={`text-[11px] font-medium leading-relaxed ${textSecondary}`}>
-                      Crawl corporate career portals and interview boards in real-time. Grounded AI parses raw text into patterns.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3 pt-2">
-                    {/* Preset Selection */}
-                    <div className="space-y-1">
-                      <label className={`text-[10px] font-bold uppercase tracking-wider block ${textSecondary}`}>Target Preset Corporate</label>
-                      <select
-                        value={ragCompany}
-                        onChange={(e) => {
-                          setRagCompany(e.target.value);
-                          setCustomCompany(''); // clear custom
-                        }}
-                        disabled={!!customCompany}
-                        className={`w-full px-3 py-2 border rounded-xl text-xs outline-none font-bold cursor-pointer ${inputBg} ${borderPrimary}`}
-                      >
-                        <option value="Google">Google (Software Engineer)</option>
-                        <option value="Netflix">Netflix (Platform & Systems SDE)</option>
-                        <option value="Amazon">Amazon (SDE-2 Fullstack)</option>
-                        <option value="Meta">Meta (Production SRE)</option>
-                        <option value="Stripe">Stripe (Backend Engineer)</option>
-                      </select>
-                    </div>
-
-                    <div className="relative flex py-1 items-center">
-                      <div className={`flex-grow border-t ${borderPrimary}`}></div>
-                      <span className={`flex-shrink mx-3 text-[10px] font-bold font-mono ${textSecondary}`}>OR TRIGGER CUSTOM CRAWLER</span>
-                      <div className={`flex-grow border-t ${borderPrimary}`}></div>
-                    </div>
-
-                    {/* Custom Scraper Fields */}
-                    <div className="space-y-2.5">
-                      <div className="space-y-1">
-                        <label className={`text-[10px] font-bold uppercase tracking-wider block font-mono ${textSecondary}`}>Target Company Name</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Uber, Adobe, Airbnb"
-                          value={customCompany}
-                          onChange={(e) => setCustomCompany(e.target.value)}
-                          className={`w-full border text-xs px-3 py-2 rounded-xl outline-none font-medium ${inputBg} ${borderPrimary}`}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className={`text-[10px] font-bold uppercase tracking-wider block font-mono ${textSecondary}`}>Specific Career Portal / Board URL</label>
-                        <input
-                          type="url"
-                          placeholder="https://www.uber.com/careers/positions"
-                          value={customUrl}
-                          onChange={(e) => setCustomUrl(e.target.value)}
-                          className={`w-full border text-xs px-3 py-2 rounded-xl outline-none font-medium ${inputBg} ${borderPrimary}`}
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={handleRunRagScraper}
-                      disabled={isRaging || (!!customCompany && !customUrl)}
-                      className="w-full py-2.5 mt-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-sm"
-                    >
-                      {isRaging ? (
-                        <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          Crawling Page & Extracting Patterns...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3.5 h-3.5" />
-                          Launch Real-Time AI Scraper
-                        </>
-                      )}
-                    </button>
-                  </div>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
                 </div>
 
-                {/* Scraper Log trail */}
-                <div className={`p-5 border rounded-3xl space-y-3.5 shadow-sm ${cardBg} ${borderPrimary}`}>
-                  <div className={`pb-1.5 border-b flex justify-between items-center ${borderPrimary}`}>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider font-mono ${textSecondary}`}>Live RAG Audit Trail</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  </div>
-                  <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 text-[10px] font-mono scrollbar-none">
-                    {scrapedHistory.length === 0 ? (
-                      <p className={`italic py-2 ${textSecondary}`}>No scraping records logged yet.</p>
-                    ) : (
-                      scrapedHistory.map((log: any, idx: number) => (
-                        <div key={idx} className={`p-2 border rounded-lg flex flex-col gap-1 ${subCardBg} ${borderPrimary}`}>
-                          <div className={`flex justify-between font-bold ${textPrimary}`}>
-                            <span>{log.companyName}</span>
-                            <span className="text-emerald-600 dark:text-emerald-400">HTTP 200 OK</span>
-                          </div>
-                          <span className={`block truncate ${textSecondary}`}>{log.scrapedUrl}</span>
-                          <span className={`text-[8px] ${textSecondary}`}>{log.scrapedAt}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                <div className="space-y-1">
+                  <span className={`text-[10px] font-bold block uppercase tracking-wider ${textSecondary}`}>Content &amp; Questions asked</span>
+                  <textarea
+                    required
+                    placeholder="List the technical and coding problems asked, along with behavioral details..."
+                    value={shareContent}
+                    onChange={(e) => setShareContent(e.target.value)}
+                    className={`w-full h-24 p-2 border rounded-xl outline-none focus:border-blue-500 resize-none font-medium leading-relaxed ${inputBg} ${borderPrimary}`}
+                  />
                 </div>
-              </div>
 
-              {/* Right Column: Display Scraped Intelligence Output */}
-              <div className="lg:col-span-7 space-y-5">
-                {ragPatterns && (
-                  <div className={`p-6 border rounded-3xl space-y-5 shadow-lg relative overflow-hidden ${cardBg} ${borderPrimary}`}>
-                    <div className="absolute top-0 right-0 p-3">
-                      <span className={`text-[9px] font-mono px-2 py-0.5 rounded-md font-bold border ${
-                        isDark ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-indigo-50 text-indigo-800 border-indigo-200'
-                      }`}>
-                        KNOWLEDGE GRAPH
-                      </span>
-                    </div>
-
-                    <div className={`flex items-center gap-2.5 pb-3 border-b ${borderPrimary}`}>
-                      <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-                        <Layers className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <strong className={`uppercase font-mono tracking-wider text-[11px] block ${textPrimary}`}>RAG Intelligence Report</strong>
-                        <span className={`text-[10px] font-mono ${textSecondary}`}>Entity: {ragPatterns.company}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Process Overview */}
-                      <div className="space-y-1.5">
-                        <h4 className={`text-xs font-bold flex items-center gap-1.5 uppercase font-mono tracking-wider ${textPrimary}`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Verified Hiring Process &amp; Trends
-                        </h4>
-                        <p className={`text-xs font-medium leading-relaxed whitespace-pre-wrap ${textSecondary}`}>
-                          {ragPatterns.hiringTrends}
-                        </p>
-                      </div>
-
-                      {/* Technical Skills Required */}
-                      <div className="space-y-2">
-                        <h4 className={`text-xs font-bold flex items-center gap-1.5 uppercase font-mono tracking-wider ${textPrimary}`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Core Technical Core Focus
-                        </h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {ragPatterns.focusSkills && ragPatterns.focusSkills.map((skill: string, i: number) => (
-                            <span key={i} className={`px-2.5 py-1 text-[10px] font-bold rounded-lg font-mono border ${
-                              isDark ? 'bg-blue-500/10 border-blue-500/20 text-cyan-400' : 'bg-blue-50 border-blue-200 text-blue-800'
-                            }`}>
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Recent Coding Questions */}
-                      <div className="space-y-2.5 pt-1">
-                        <h4 className={`text-xs font-bold flex items-center gap-1.5 uppercase font-mono tracking-wider ${textPrimary}`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Scraped Algorithmic Questions
-                        </h4>
-                        <div className="space-y-2">
-                          {ragPatterns.recentQuestions && ragPatterns.recentQuestions.map((q: string, i: number) => (
-                            <div key={i} className={`p-3 border rounded-xl space-y-1 text-xs ${subCardBg} ${borderPrimary}`}>
-                              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">QUESTION 0{i + 1}</span>
-                              <p className={`font-medium leading-relaxed ${textPrimary}`}>{q}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={`pt-3 border-t flex items-center justify-between text-[9px] font-mono ${borderPrimary} ${textSecondary}`}>
-                      <span>Source: {ragPatterns.RAGcontext || "Grounded Web Index"}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+                <button
+                  type="submit"
+                  disabled={isSharing}
+                  className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  {isSharing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  Publish Experience
+                </button>
+              </form>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
