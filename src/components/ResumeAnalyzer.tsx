@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Upload, Sparkles, CheckCircle2, RefreshCw, FileText, 
-  AlertTriangle, ShieldCheck, Copy, Check, Plus, Trash, 
-  Download, Eye, X, Linkedin 
+  AlertTriangle, ShieldCheck, Download, Eye, X, Linkedin 
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { apiFetch } from '../lib/apiClient';
@@ -12,7 +11,6 @@ interface ResumeAnalyzerProps {
 }
 
 export default function ResumeAnalyzer({ isDark = false }: ResumeAnalyzerProps) {
-  const [activeTab, setActiveTab] = useState<'analyzer' | 'builder'>('analyzer');
   
   // Tab 1: ATS Analyzer State
   const [isUploading, setIsUploading] = useState(false);
@@ -48,15 +46,6 @@ export default function ResumeAnalyzer({ isDark = false }: ResumeAnalyzerProps) 
   });
   const [activeQuestionCategory, setActiveQuestionCategory] = useState<'project' | 'skills' | 'behavior'>('project');
 
-  // Tab 2: AI Builder State
-  const [inputBullet, setInputBullet] = useState('');
-  const [isRewriting, setIsRewriting] = useState(false);
-  const [rewrittenBullets, setRewrittenBullets] = useState<string[]>([
-    '• Re-architected full-stack query indexes by introducing consistent hashing partitions, mitigating query lag by 45%.',
-    '• Engineered multi-tenant authorization boundaries using OAuth 2.0 and gRPC protocol buffers, reducing response payload sizes by 3.2x.',
-    '• Managed Docker development workflows across team branches, decreasing build failures by 20%.'
-  ]);
-  const [hasCopied, setHasCopied] = useState(false);
 
   // Resume Model State
   const [resumeProfile, setResumeProfile] = useState({
@@ -437,86 +426,10 @@ export default function ResumeAnalyzer({ isDark = false }: ResumeAnalyzerProps) 
     }
   };
 
-  const handleAiRewrite = async () => {
-    if (!inputBullet.trim()) return;
-    setIsRewriting(true);
-    try {
-      const res = await apiFetch('/api/ai/resume/rewrite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: inputBullet })
-      });
-      const data = await res.json();
-      if (data.bullets) {
-        setRewrittenBullets(data.bullets);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsRewriting(false);
-    }
-  };
-
-  const handleAddRewrittenToResume = (bullet: string) => {
-    const cleaned = bullet.replace(/^•\s*/, '');
-    const updatedBullets = [...resumeProfile.bullets, cleaned];
-    const updatedProfile = { ...resumeProfile, bullets: updatedBullets };
-    setResumeProfile(updatedProfile);
-    handleSaveProfile(updatedProfile);
-  };
-
-  const handleRemoveBullet = (index: number) => {
-    const updatedBullets = resumeProfile.bullets.filter((_, i) => i !== index);
-    const updatedProfile = { ...resumeProfile, bullets: updatedBullets };
-    setResumeProfile(updatedProfile);
-    handleSaveProfile(updatedProfile);
-  };
-
-  const handleCopyText = () => {
-    const formatted = `
-${resumeProfile.name}
-${resumeProfile.title} | ${resumeProfile.email}
-Skills: ${resumeProfile.skills}
-
-Core Accomplishments:
-${resumeProfile.bullets.map(b => `• ${b}`).join('\n')}
-    `.trim();
-    navigator.clipboard.writeText(formatted);
-    setHasCopied(true);
-    setTimeout(() => setHasCopied(false), 2000);
-  };
 
   return (
     <div className={`p-6 space-y-6 min-h-screen transition-colors duration-300 ${bgMain} ${textPrimary}`}>
-      
-      {/* Top Section Tabs */}
-      <div className={`flex justify-between items-center p-1.5 border rounded-2xl max-w-md mx-auto ${
-        isDark ? 'bg-[#161B22] border-slate-800' : 'bg-slate-50 border-slate-200'
-      }`}>
-        <button
-          onClick={() => setActiveTab('analyzer')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all ${
-            activeTab === 'analyzer'
-              ? (isDark ? 'bg-cyan-900/40 text-cyan-400 border border-cyan-500/30 shadow-md' : 'bg-blue-100 text-blue-800 border border-blue-200 shadow-xs')
-              : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900')
-          }`}
-        >
-          ATS Analyzer & Scan
-        </button>
-        <button
-          onClick={() => setActiveTab('builder')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all ${
-            activeTab === 'builder'
-              ? (isDark ? 'bg-cyan-900/40 text-cyan-400 border border-cyan-500/30 shadow-md' : 'bg-blue-100 text-blue-800 border border-blue-200 shadow-xs')
-              : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900')
-          }`}
-        >
-          AI STAR Bullet Builder
-        </button>
-      </div>
-
-      {activeTab === 'analyzer' ? (
-        <div>
+      <div>
           {!uploaded ? (
             <div className="max-w-3xl mx-auto space-y-6">
               {/* Uploader & LinkedIn Sync Grid */}
@@ -933,196 +846,7 @@ ${resumeProfile.bullets.map(b => `• ${b}`).join('\n')}
             </div>
           )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left panel: STAR generator tool */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className={`p-6 border rounded-3xl space-y-4 ${cardBg} ${borderPrimary}`}>
-              <div className="space-y-1">
-                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1.5 uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5 animate-pulse" /> AI Resume Rewriter (STAR Method)
-                </span>
-                <h4 className={`font-bold text-sm ${textPrimary}`}>Convert generic bullets to STAR achievements</h4>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <textarea
-                  value={inputBullet}
-                  onChange={(e) => setInputBullet(e.target.value)}
-                  placeholder="e.g., 'Implemented search on the website and made the database queries run much faster.'"
-                  className={`w-full h-24 p-3 border rounded-2xl outline-none focus:border-blue-500 resize-none leading-relaxed font-medium ${inputBg} ${borderPrimary}`}
-                />
-                
-                <button
-                  onClick={handleAiRewrite}
-                  disabled={isRewriting || !inputBullet.trim()}
-                  className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 shadow-sm"
-                >
-                  {isRewriting ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      Optimizing Bullet Structure...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Rewrite Using STAR Method
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Suggestions results */}
-              <div className="space-y-3 pt-2">
-                <span className={`text-[9px] font-bold block uppercase tracking-wider font-mono ${textSecondary}`}>STAR Rewritten Proposals</span>
-                <div className="space-y-2.5">
-                  {rewrittenBullets.map((bullet, idx) => (
-                    <div key={idx} className={`p-3 border rounded-2xl text-xs space-y-2 relative group ${subCardBg} ${borderPrimary}`}>
-                      <p className={`font-medium leading-relaxed pr-8 ${textPrimary}`}>{bullet}</p>
-                      <button
-                        onClick={() => handleAddRewrittenToResume(bullet)}
-                        className={`absolute right-3 top-3 p-1.5 rounded-lg text-[9px] font-semibold cursor-pointer transition-colors border ${
-                          isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700'
-                        }`}
-                        title="Add this bullet to your live resume profile"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right panel: SDE Resume Builder Form & Real-time Live Preview */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className={`p-6 border rounded-3xl space-y-5 ${cardBg} ${borderPrimary}`}>
-              <div className={`flex justify-between items-center pb-2.5 border-b ${borderPrimary}`}>
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-500" />
-                  <span className={`font-bold text-sm ${textPrimary}`}>Interactive Resume Profile</span>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <button
-                    onClick={handleLinkedInSync}
-                    disabled={isSyncingLinkedIn}
-                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors border ${
-                      isDark ? 'bg-[#0077b5]/20 border-[#0077b5]/30 text-cyan-400' : 'bg-blue-50 border-blue-200 text-blue-800'
-                    }`}
-                  >
-                    <Linkedin className="w-3.5 h-3.5 fill-current shrink-0" />
-                    {isSyncingLinkedIn ? 'Syncing...' : 'Sync LinkedIn'}
-                  </button>
-                  <button
-                    onClick={() => handleSaveProfile()}
-                    disabled={isSavingProfile}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                  >
-                    {isSavingProfile ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Saving...
-                      </>
-                    ) : saveSuccess ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-300" /> Saved!
-                      </>
-                    ) : (
-                      <>
-                        Save Changes
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={handleCopyText}
-                    className={`px-3 py-1.5 border rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer ${
-                      isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'
-                    }`}
-                  >
-                    {hasCopied ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-500" /> Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" /> Copy Raw
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setShowPreviewModal(true)}
-                    className={`px-3 py-1.5 border rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors ${
-                      isDark ? 'bg-blue-500/10 border-blue-500/20 text-cyan-400' : 'bg-blue-50 border-blue-200 text-blue-700'
-                    }`}
-                  >
-                    <Eye className="w-3.5 h-3.5" /> Preview
-                  </button>
-                  <button
-                    onClick={handleDownloadPdf}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <Download className="w-3.5 h-3.5" /> Export PDF
-                  </button>
-                </div>
-              </div>
-
-              {/* Editable form fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-medium">
-                <div className="space-y-1">
-                  <label className={`text-[9px] font-bold uppercase tracking-wider block ${textSecondary}`}>Candidate Name</label>
-                  <input
-                    type="text"
-                    value={resumeProfile.name}
-                    onChange={(e) => setResumeProfile(prev => ({ ...prev, name: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl outline-none focus:border-blue-500 ${inputBg} ${borderPrimary}`}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className={`text-[9px] font-bold uppercase tracking-wider block ${textSecondary}`}>Target SDE Title</label>
-                  <input
-                    type="text"
-                    value={resumeProfile.title}
-                    onChange={(e) => setResumeProfile(prev => ({ ...prev, title: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl outline-none focus:border-blue-500 ${inputBg} ${borderPrimary}`}
-                  />
-                </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <label className={`text-[9px] font-bold uppercase tracking-wider block ${textSecondary}`}>Core Technical Skills (comma separated)</label>
-                  <input
-                    type="text"
-                    value={resumeProfile.skills}
-                    onChange={(e) => setResumeProfile(prev => ({ ...prev, skills: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl outline-none focus:border-blue-500 ${inputBg} ${borderPrimary}`}
-                  />
-                </div>
-              </div>
-
-              {/* Bullet points collection preview */}
-              <div className="space-y-3 pt-2">
-                <span className={`text-[9px] font-bold block uppercase tracking-wider ${textSecondary}`}>Dynamic Resume Bullet Points</span>
-                <div className="space-y-2 text-xs">
-                  {resumeProfile.bullets.length === 0 ? (
-                    <p className={`font-medium italic ${textSecondary}`}>No accomplishments added. Use the STAR optimizer on the left to append premium achievements!</p>
-                  ) : (
-                    resumeProfile.bullets.map((b, idx) => (
-                      <div key={idx} className={`p-3 border rounded-xl flex items-start gap-2.5 group ${subCardBg} ${borderPrimary}`}>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <p className={`leading-relaxed flex-1 font-medium ${textPrimary}`}>{b}</p>
-                        <button
-                          onClick={() => handleRemoveBullet(idx)}
-                          className="text-rose-500 hover:text-rose-600 p-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                        >
-                          <Trash className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* End of Builder branch removal */}
 
       {/* Professional Resume PDF Preview Modal */}
       {showPreviewModal && (

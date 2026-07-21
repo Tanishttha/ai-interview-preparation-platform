@@ -35,17 +35,34 @@ export const authenticateJWT = async (req: AuthenticatedRequest, res: Response, 
   try {
     const authHeader = req.headers.authorization;
 
-    if (authHeader?.startsWith('Bearer ') && isFirebaseAdminAvailable()) {
-      const idToken = authHeader.split(' ')[1];
-      const decoded = await verifyFirebaseIdToken(idToken);
-      const user = await userRepository.findOrCreateByFirebaseIdentity({
-        uid: decoded.uid,
-        email: decoded.email || `${decoded.uid}@no-email.prepai`,
-        name: (decoded.name as string) || undefined,
-        photoURL: (decoded.picture as string) || undefined
-      });
-      req.user = { id: user.id, email: user.email, role: user.role, name: user.name, photoURL: user.photoURL };
-      return next();
+    if (typeof authHeader === 'string' && authHeader) {
+      console.log('[auth] Authorization header received:', authHeader.slice(0, 80));
+      const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+      if (bearerMatch) {
+        const idToken = bearerMatch[1].trim();
+        console.log('[auth] Parsed token length:', idToken.length);
+
+        if (!isFirebaseAdminAvailable()) {
+          console.error('[auth] Firebase Admin is not available for Bearer verification.');
+          return res.status(503).json({ error: 'Authentication backend unavailable.' });
+        }
+
+        try {
+          const decoded = await verifyFirebaseIdToken(idToken);
+          console.log('[auth] verifyIdToken success for uid:', decoded.uid);
+          const user = await userRepository.findOrCreateByFirebaseIdentity({
+            uid: decoded.uid,
+            email: decoded.email || `${decoded.uid}@no-email.prepai`,
+            name: (decoded.name as string) || undefined,
+            photoURL: (decoded.picture as string) || undefined
+          });
+          req.user = { id: user.id, email: user.email, role: user.role, name: user.name, photoURL: user.photoURL };
+          return next();
+        } catch (err: any) {
+          console.error('[auth] verifyIdToken failed:', err?.message || err);
+          return res.status(401).json({ error: `Unauthorized: ${err?.message || 'invalid Firebase token'}` });
+        }
+      }
     }
 
     const simulatedHeader = req.headers['x-simulated-user'];
@@ -66,8 +83,8 @@ export const authenticateJWT = async (req: AuthenticatedRequest, res: Response, 
 
     return res.status(401).json({ error: 'Unauthorized: no valid credentials provided.' });
   } catch (err: any) {
-    console.error('Authentication error:', err);
-    return res.status(403).json({ error: 'Forbidden: invalid or expired credentials.' });
+    console.error('[auth] Authentication error:', err?.message || err);
+    return res.status(403).json({ error: `Forbidden: ${err?.message || 'invalid or expired credentials.'}` });
   }
 };
 

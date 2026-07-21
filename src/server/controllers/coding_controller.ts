@@ -109,25 +109,30 @@ export class CodingController {
           if (result.statusDescription === 'Compilation Error') break;
         }
 
-        const status = allPassed ? 'Accepted' : (caseResults.some(c => c.status === 'Compilation Error') ? 'Compile Error' : 'Failed');
+        const verdict = allPassed ? 'Accepted' : (caseResults.some(c => c.status === 'Compilation Error') ? 'Compile Error' : 'Wrong Answer');
         const feedback = allPassed
           ? `All ${caseResults.length} test case(s) passed.`
           : `${caseResults.filter(c => c.passed).length}/${caseResults.length} test case(s) passed. First failure: ${JSON.stringify(caseResults.find(c => !c.passed))}`;
 
         const submission = await codingRepository.createSubmission({
           userId,
-          questionId: questionId || question?.id || 'unknown',
-          code,
+          problemId: questionId || question?.id || 'unknown',
+          sourceCode: code,
           language: languageKey,
-          status,
+          verdict,
           runtime: maxTime,
           memory: maxMemory,
+          passedTests: caseResults.filter(c => c.passed).length,
+          totalTests: caseResults.length,
+          submittedAt: new Date().toISOString(),
           feedback
         });
 
+        await codingRepository.updateProblemProgress(userId, questionId || question?.id || 'unknown', verdict === 'Accepted');
+
         return res.json({
           success: allPassed,
-          status: submission.status,
+          status: submission.verdict || submission.status,
           runtime: `${maxTime} ms`,
           memory: `${(maxMemory / 1024).toFixed(2)} MB`,
           feedback,
@@ -146,23 +151,28 @@ export class CodingController {
 
       let submissionRecord = null;
       if (isSubmit) {
+        const verdict = result.statusDescription === 'Accepted' ? 'Accepted' : result.statusDescription;
         submissionRecord = await codingRepository.createSubmission({
           userId,
-          questionId: questionId || question?.id || 'unknown',
-          code,
+          problemId: questionId || question?.id || 'unknown',
+          sourceCode: code,
           language: languageKey,
-          status: result.statusDescription === 'Accepted' ? 'Executed' : result.statusDescription,
+          verdict,
           runtime: result.timeMs || 0,
           memory: result.memoryKb || 0,
+          passedTests: result.statusDescription === 'Accepted' ? 1 : 0,
+          totalTests: 1,
+          submittedAt: new Date().toISOString(),
           feedback: harness
             ? 'Executed successfully, but this question has no test cases configured for automated grading.'
             : 'Executed successfully, but this question has no authored auto-grading harness yet — output shown is raw program output, not a verified pass/fail verdict.'
         });
+        await codingRepository.updateProblemProgress(userId, questionId || question?.id || 'unknown', verdict === 'Accepted');
       }
 
       return res.json({
         success: result.statusDescription === 'Accepted',
-        status: submissionRecord?.status || result.statusDescription,
+        status: submissionRecord?.verdict || submissionRecord?.status || result.statusDescription,
         runtime: `${result.timeMs || 0} ms`,
         memory: `${((result.memoryKb || 0) / 1024).toFixed(2)} MB`,
         feedback: submissionRecord?.feedback || (executed ? 'Program executed.' : `Execution failed: ${result.statusDescription}`),

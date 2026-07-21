@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 import Sidebar, { DashboardTab } from './components/Sidebar';
@@ -7,7 +8,8 @@ import DashboardOverview from './components/DashboardOverview';
 import CompanyExplorer from './components/CompanyExplorer';
 import CompanyDetail from './components/CompanyDetail';
 import PersonalizedRoadmap from './components/PersonalizedRoadmap';
-import CodingPractice from './components/CodingPractice';
+import CodingPractice from './pages/CodingPractice';
+import ProblemDetails from './pages/ProblemDetails';
 import HRInterview from './components/HRInterview';
 import TechnicalInterview from './components/TechnicalInterview';
 import AptitudeSection from './components/AptitudeSection';
@@ -20,72 +22,270 @@ import FloatingAIWidget from './components/FloatingAIWidget';
 import { Company } from './types';
 import { onAuthChanged, signOutUser, AuthUser } from './lib/firebase';
 
-export default function App() {
-  const [screen, setScreen] = useState<'landing' | 'auth' | 'dashboard'>('landing');
-  const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+interface DashboardContentProps {
+  activeTab: DashboardTab;
+  isDark: boolean;
+  bookmarks: string[];
+  setSelectedCompany: (company: Company | null) => void;
+  handleToggleBookmark: (id: string) => void;
+  user: AuthUser | null;
+  toggleTheme: () => void;
+  handleLogout: () => Promise<void>;
+  notifSetting: boolean;
+  setNotifSetting: (value: boolean) => void;
+  langSetting: string;
+  setLangSetting: (value: string) => void;
+  setActiveTab: (tab: DashboardTab) => void;
+  setIsSidebarOpen: (value: boolean) => void;
+  selectedCompany: Company | null;
+}
 
-  // Theme state (Dark Mode by default)
-  const [isDark, setIsDark] = useState(true);
+function DashboardContent({
+  activeTab,
+  isDark,
+  bookmarks,
+  setSelectedCompany,
+  handleToggleBookmark,
+  user,
+  toggleTheme,
+  handleLogout,
+  notifSetting,
+  setNotifSetting,
+  langSetting,
+  setLangSetting,
+  setActiveTab,
+  setIsSidebarOpen,
+  selectedCompany,
+}: DashboardContentProps) {
+  const location = useLocation();
+  const isProblemRoute = location.pathname.startsWith('/problems/');
 
-  // Mobile sidebar drawer state
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // Bookmarks state (shared across components)
-  const [bookmarks, setBookmarks] = useState<string[]>(['google', 'two-sum']);
-
-  // Active chosen company inside Company Explorer / detail flow
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-
-  // Settings view simulated configurations
-  const [notifSetting, setNotifSetting] = useState(true);
-  const [langSetting, setLangSetting] = useState('english');
-
-  // Dynamic Theme Class Variables
   const bgMain = isDark ? 'bg-[#0B0F17]' : 'bg-white';
   const textPrimary = isDark ? 'text-slate-100' : 'text-slate-900';
   const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600';
   const borderPrimary = isDark ? 'border-slate-800' : 'border-slate-200';
-  
   const cardBg = isDark ? 'bg-[#0F172A]' : 'bg-white';
   const subCardBg = isDark ? 'bg-[#161B22]' : 'bg-slate-50';
 
-  // Firebase Auth state persistence sync
+  const renderContent = () => {
+    if (activeTab === 'dashboard') {
+      return (
+        <DashboardOverview
+          onNavigate={(tab) => {
+            setActiveTab(tab);
+            setSelectedCompany(null);
+          }}
+          isDark={isDark}
+        />
+      );
+    }
+
+    if (activeTab === 'companies') {
+      if (selectedCompany) {
+        return (
+          <CompanyDetail
+            company={selectedCompany}
+            onBack={() => setSelectedCompany(null)}
+            onStartPrep={() => {
+              setActiveTab('roadmap');
+              setSelectedCompany(null);
+            }}
+            isDark={isDark}
+          />
+        );
+      }
+
+      return (
+        <CompanyExplorer
+          onSelectCompany={setSelectedCompany}
+          bookmarks={bookmarks}
+          onToggleBookmark={handleToggleBookmark}
+          isDark={isDark}
+        />
+      );
+    }
+
+    if (activeTab === 'roadmap') return <PersonalizedRoadmap isDark={isDark} />;
+    if (activeTab === 'coding') return <CodingPractice isDark={isDark} />;
+    if (activeTab === 'hr') return <HRInterview isDark={isDark} />;
+    if (activeTab === 'technical') return <TechnicalInterview isDark={isDark} />;
+    if (activeTab === 'aptitude') return <AptitudeSection isDark={isDark} />;
+    if (activeTab === 'resume') return <ResumeAnalyzer isDark={isDark} />;
+    if (activeTab === 'mock-interview') return <MockInterviewSimulator isDark={isDark} />;
+    if (activeTab === 'analytics') {
+      return (
+        <InterviewAnalytics
+          onNavigate={(tab) => {
+            setActiveTab(tab);
+            setSelectedCompany(null);
+          }}
+          isDark={isDark}
+        />
+      );
+    }
+
+    if (activeTab === 'career-coach') return <AICareerCoach tool="career-coach" isDark={isDark} />;
+    if (activeTab === 'jobs') return <AICareerCoach tool="jobs" isDark={isDark} />;
+
+    if (['bookmarks', 'leaderboard', 'achievements', 'calendar', 'Timer', 'notes', 'experiences'].includes(activeTab as never)) {
+      return (
+        <OtherTools
+          tool={activeTab as never}
+          bookmarks={bookmarks}
+          onToggleBookmark={handleToggleBookmark}
+          isDark={isDark}
+        />
+      );
+    }
+
+    if (activeTab === 'settings') {
+      return (
+        <div className={`mx-auto max-w-2xl rounded-3xl border p-6 shadow-sm ${cardBg} ${borderPrimary}`}>
+          <div className={`border-b pb-2 ${borderPrimary}`}>
+            <h3 className={`text-base font-extrabold ${textPrimary}`}>Workspace Configurations</h3>
+          </div>
+          <div className="mt-6 space-y-4 text-xs font-medium">
+            <div className={`flex items-center justify-between rounded-2xl border p-3.5 ${subCardBg} ${borderPrimary}`}>
+              <div>
+                <span className={`block font-bold ${textPrimary}`}>Workspace dark theme</span>
+                <p className={`text-[10px] ${textSecondary}`}>Toggle dark UI canvas modes</p>
+              </div>
+              <button
+                onClick={toggleTheme}
+                className={`rounded-xl border px-4 py-1.5 font-bold transition-all ${
+                  isDark ? 'border-cyan-500/20 bg-cyan-500/10 text-cyan-400' : 'border-blue-200 bg-blue-50 text-blue-800'
+                }`}
+              >
+                {isDark ? 'Dark Active' : 'Light Active'}
+              </button>
+            </div>
+
+            <div className={`flex items-center justify-between rounded-2xl border p-3.5 ${subCardBg} ${borderPrimary}`}>
+              <div>
+                <span className={`block font-bold ${textPrimary}`}>Desktop Notification Center</span>
+                <p className={`text-[10px] ${textSecondary}`}>Alert me upon upcoming mock interview sessions</p>
+              </div>
+              <button
+                onClick={() => setNotifSetting(!notifSetting)}
+                className={`rounded-xl border px-4 py-1.5 font-bold transition-all ${
+                  notifSetting
+                    ? isDark
+                      ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                      : 'border-emerald-200 bg-emerald-100 text-emerald-800'
+                    : isDark
+                      ? 'border-slate-700 bg-slate-800 text-slate-400'
+                      : 'border-slate-300 bg-slate-200 text-slate-600'
+                }`}
+              >
+                {notifSetting ? 'Enabled' : 'Disabled'}
+              </button>
+            </div>
+
+            <div className={`flex items-center justify-between rounded-2xl border p-3.5 ${subCardBg} ${borderPrimary}`}>
+              <div>
+                <span className={`block font-bold ${textPrimary}`}>Language Locale</span>
+                <p className={`text-[10px] ${textSecondary}`}>Adjust the speech analyzer parser locale</p>
+              </div>
+              <select
+                value={langSetting}
+                onChange={(event) => setLangSetting(event.target.value)}
+                className={`rounded-xl border px-3 py-1.5 text-[10px] font-bold outline-none ${
+                  isDark ? 'border-slate-700 bg-slate-800 text-slate-200' : 'border-slate-200 bg-white text-slate-700'
+                }`}
+              >
+                <option value="english">English</option>
+                <option value="hindi">Hindi</option>
+                <option value="spanish">Spanish</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={(tab) => {
+          setActiveTab(tab);
+          setSelectedCompany(null);
+        }}
+        onLogout={handleLogout}
+        isOpen={false}
+        setIsOpen={setIsSidebarOpen}
+        user={user}
+        isDark={isDark}
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
+        <Navbar
+          isDark={isDark}
+          toggleTheme={toggleTheme}
+          activeTab={activeTab}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+          user={user}
+        />
+
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          {isProblemRoute ? (
+            <Routes>
+              <Route path="/problems/:slug" element={<ProblemDetails isDark={isDark} />} />
+            </Routes>
+          ) : (
+            renderContent()
+          )}
+        </main>
+      </div>
+
+      <FloatingAIWidget isDark={isDark} />
+    </div>
+  );
+}
+
+function AppContent() {
+  const [screen, setScreen] = useState<'landing' | 'auth' | 'dashboard'>('landing');
+  const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isDark, setIsDark] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [bookmarks, setBookmarks] = useState<string[]>(['google', 'two-sum']);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [notifSetting, setNotifSetting] = useState(true);
+  const [langSetting, setLangSetting] = useState('english');
+
+  const bgMain = isDark ? 'bg-[#0B0F17]' : 'bg-white';
+  const textPrimary = isDark ? 'text-slate-100' : 'text-slate-900';
+
   useEffect(() => {
-    console.log('[App] Subscribing to auth state...');
     const unsubscribe = onAuthChanged((currentUser) => {
-      console.log('[App] onAuthChanged fired. currentUser:', currentUser, 'current screen:', screen);
       setUser(currentUser);
       if (currentUser) {
-        console.log('[App] Routing to dashboard');
         setScreen('dashboard');
       }
       setAuthLoading(false);
     });
-    return () => {
-      console.log('[App] Unsubscribing auth listener (effect cleanup)');
-      unsubscribe();
-    };
+
+    return () => unsubscribe();
   }, []);
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
+    setIsDark((value) => !value);
   };
 
   const handleToggleBookmark = (id: string) => {
-    if (bookmarks.includes(id)) {
-      setBookmarks(bookmarks.filter((item) => item !== id));
-    } else {
-      setBookmarks([...bookmarks, id]);
-    }
+    setBookmarks((value) => (value.includes(id) ? value.filter((item) => item !== id) : [...value, id]));
   };
 
   const handleLogout = async () => {
     try {
       await signOutUser();
-    } catch (err) {
-      console.error("Logout failure:", err);
+    } catch (error) {
+      console.error('Logout failure:', error);
     }
     setUser(null);
     setScreen('landing');
@@ -95,9 +295,9 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center font-sans ${bgMain} ${textPrimary}`}>
+      <div className={`flex min-h-screen items-center justify-center font-sans ${bgMain} ${textPrimary}`}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
           <p className="text-sm font-semibold">Loading PrepAI...</p>
         </div>
       </div>
@@ -107,7 +307,6 @@ export default function App() {
   return (
     <div className={isDark ? 'dark' : ''}>
       <div className={`min-h-screen transition-colors duration-300 ${bgMain} ${textPrimary}`}>
-        {/* LANDING PAGE SCREEN */}
         {screen === 'landing' && (
           <LandingPage
             onStart={() => setScreen('auth')}
@@ -116,7 +315,6 @@ export default function App() {
           />
         )}
 
-        {/* AUTHENTICATION SCREEN */}
         {screen === 'auth' && (
           <AuthPage
             onSuccess={() => setScreen('dashboard')}
@@ -125,177 +323,34 @@ export default function App() {
           />
         )}
 
-        {/* MAIN FULL-STACK STYLE DASHBOARD PANEL */}
         {screen === 'dashboard' && (
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar
-              activeTab={activeTab}
-              setActiveTab={(tab) => {
-                setActiveTab(tab);
-                setSelectedCompany(null);
-              }}
-              onLogout={handleLogout}
-              isOpen={isSidebarOpen}
-              setIsOpen={setIsSidebarOpen}
-              user={user}
-              isDark={isDark}
-            />
-
-            <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
-              <Navbar
-                isDark={isDark}
-                toggleTheme={toggleTheme}
-                activeTab={activeTab}
-                onOpenSidebar={() => setIsSidebarOpen(true)}
-                user={user}
-              />
-
-              <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                {activeTab === 'dashboard' && (
-                  <DashboardOverview
-                    onNavigate={(tab) => {
-                      setActiveTab(tab);
-                      setSelectedCompany(null);
-                    }}
-                    isDark={isDark}
-                  />
-                )}
-
-                {activeTab === 'companies' && (
-                  selectedCompany ? (
-                    <CompanyDetail
-                      company={selectedCompany}
-                      onBack={() => setSelectedCompany(null)}
-                      onStartPrep={() => {
-                        setActiveTab('roadmap');
-                        setSelectedCompany(null);
-                      }}
-                      isDark={isDark}
-                    />
-                  ) : (
-                    <CompanyExplorer
-                      onSelectCompany={setSelectedCompany}
-                      bookmarks={bookmarks}
-                      onToggleBookmark={handleToggleBookmark}
-                      isDark={isDark}
-                    />
-                  )
-                )}
-
-                {activeTab === 'roadmap' && <PersonalizedRoadmap isDark={isDark} />}
-                {activeTab === 'coding' && <CodingPractice isDark={isDark} />}
-                {activeTab === 'hr' && <HRInterview isDark={isDark} />}
-                {activeTab === 'technical' && <TechnicalInterview isDark={isDark} />}
-                {activeTab === 'aptitude' && <AptitudeSection isDark={isDark} />}
-                {activeTab === 'resume' && <ResumeAnalyzer isDark={isDark} />}
-                {activeTab === 'mock-interview' && <MockInterviewSimulator isDark={isDark} />}
-
-                {activeTab === 'analytics' && (
-                  <InterviewAnalytics
-                    onNavigate={(tab) => {
-                      setActiveTab(tab);
-                      setSelectedCompany(null);
-                    }}
-                    isDark={isDark}
-                  />
-                )}
-
-                {activeTab === 'career-coach' && <AICareerCoach tool="career-coach" isDark={isDark} />}
-                {activeTab === 'jobs' && <AICareerCoach tool="jobs" isDark={isDark} />}
-
-                {(['bookmarks', 'leaderboard', 'achievements', 'calendar', 'pomodoro', 'notes', 'experiences'] as const).includes(activeTab as any) && (
-                  <OtherTools
-                    tool={activeTab as any}
-                    bookmarks={bookmarks}
-                    onToggleBookmark={handleToggleBookmark}
-                    isDark={isDark}
-                  />
-                )}
-
-                {activeTab === 'settings' && (
-                  <div className={`max-w-2xl mx-auto p-6 border rounded-3xl space-y-6 shadow-sm ${cardBg} ${borderPrimary}`}>
-                    <div className={`pb-2 border-b ${borderPrimary}`}>
-                      <h3 className={`font-extrabold text-base ${textPrimary}`}>Workspace Configurations</h3>
-                    </div>
-
-                    <div className="space-y-4 text-xs font-medium">
-                      <div className={`flex justify-between items-center p-3.5 border rounded-2xl ${subCardBg} ${borderPrimary}`}>
-                        <div>
-                          <span className={`font-bold block ${textPrimary}`}>Workspace dark theme</span>
-                          <p className={`text-[10px] ${textSecondary}`}>Toggle dark UI canvas modes</p>
-                        </div>
-                        <button
-                          onClick={toggleTheme}
-                          className={`px-4 py-1.5 font-bold border rounded-xl cursor-pointer transition-all ${
-                            isDark ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400' : 'bg-blue-50 border-blue-200 text-blue-800'
-                          }`}
-                        >
-                          {isDark ? 'Dark Active' : 'Light Active'}
-                        </button>
-                      </div>
-
-                      <div className={`flex justify-between items-center p-3.5 border rounded-2xl ${subCardBg} ${borderPrimary}`}>
-                        <div>
-                          <span className={`font-bold block ${textPrimary}`}>Desktop Notification Center</span>
-                          <p className={`text-[10px] ${textSecondary}`}>Alert me upon upcoming mock interview sessions</p>
-                        </div>
-                        <button
-                          onClick={() => setNotifSetting(!notifSetting)}
-                          className={`px-4 py-1.5 font-bold border rounded-xl cursor-pointer transition-all ${
-                            notifSetting 
-                              ? (isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-100 border-emerald-200 text-emerald-800') 
-                              : (isDark ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-200 border-slate-300 text-slate-600')
-                          }`}
-                        >
-                          {notifSetting ? 'Enabled' : 'Disabled'}
-                        </button>
-                      </div>
-
-                      <div className={`flex justify-between items-center p-3.5 border rounded-2xl ${subCardBg} ${borderPrimary}`}>
-                        <div>
-                          <span className={`font-bold block ${textPrimary}`}>Language Locale</span>
-                          <p className={`text-[10px] ${textSecondary}`}>Adjust the speech analyzer parser locale</p>
-                        </div>
-                        <select
-                          value={langSetting}
-                          onChange={(e) => setLangSetting(e.target.value)}
-                          className={`bg-transparent font-bold outline-none cursor-pointer border-none ${
-                            isDark ? 'text-cyan-400' : 'text-blue-700'
-                          }`}
-                        >
-                          <option value="english" className={isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}>English (US)</option>
-                          <option value="hindi" className={isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}>Hindi/English</option>
-                        </select>
-                      </div>
-
-                      <div className={`p-4.5 border rounded-2xl text-xs space-y-2.5 ${
-                        isDark ? 'bg-rose-500/10 border-rose-500/20' : 'bg-rose-50 border-rose-200'
-                      }`}>
-                        <span className="font-bold text-rose-600 dark:text-rose-400 block uppercase tracking-wider text-[10px] font-mono">Danger Zone</span>
-                        <p className={`leading-relaxed font-medium ${textSecondary}`}>
-                          Once you delete your PrepAI premium account, your interview history logs, calendar schedules, custom roadmaps, and unlocked achievements are permanently wiped from browser databases.
-                        </p>
-                        <button
-                          onClick={() => {
-                            if (confirm('Are you absolutely sure you want to delete your PrepAI workspace account? This cannot be undone.')) {
-                              handleLogout();
-                            }
-                          }}
-                          className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs cursor-pointer transition-colors shadow-sm"
-                        >
-                          Delete Account Permanently
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </main>
-            </div>
-
-            <FloatingAIWidget isDark={isDark} />
-          </div>
+          <DashboardContent
+            activeTab={activeTab}
+            isDark={isDark}
+            bookmarks={bookmarks}
+            setSelectedCompany={setSelectedCompany}
+            handleToggleBookmark={handleToggleBookmark}
+            user={user}
+            toggleTheme={toggleTheme}
+            handleLogout={handleLogout}
+            notifSetting={notifSetting}
+            setNotifSetting={setNotifSetting}
+            langSetting={langSetting}
+            setLangSetting={setLangSetting}
+            setActiveTab={setActiveTab}
+            setIsSidebarOpen={setIsSidebarOpen}
+            selectedCompany={selectedCompany}
+          />
         )}
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }

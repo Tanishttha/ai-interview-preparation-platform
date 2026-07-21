@@ -16,7 +16,7 @@ import { scrapeCompanyData } from "./src/server/services/scraper_service";
 class GoogleGenAI {
   private groq: Groq;
 
-  constructor({ apiKey }: { apiKey: string }) {
+  constructor({ apiKey, httpOptions }: { apiKey: string; httpOptions?: Record<string, unknown> }) {
     this.groq = new Groq({ apiKey });
   }
 

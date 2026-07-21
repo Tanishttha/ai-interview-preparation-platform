@@ -1,4 +1,7 @@
+import dotenv from 'dotenv';
 import admin from 'firebase-admin';
+
+dotenv.config();
 
 let initialized = false;
 let available = false;
@@ -34,13 +37,14 @@ function init() {
         })
       });
       available = true;
+      console.log('[auth] Firebase Admin SDK initialized for project:', process.env.FIREBASE_PROJECT_ID);
     } else {
       console.log(
         'ℹ️  No Firebase Admin credentials configured — falling back to simulated-auth verification for local development.'
       );
     }
-  } catch (err) {
-    console.error('Failed to initialize Firebase Admin SDK:', err);
+  } catch (err: any) {
+    console.error('[auth] Firebase Admin initialization failed:', err?.message || err);
     available = false;
   }
 }

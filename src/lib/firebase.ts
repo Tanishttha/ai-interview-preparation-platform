@@ -14,13 +14,15 @@ import {
   signInWithPopup as fbSignInWithPopup
 } from "firebase/auth";
 
+const runtimeEnv = (import.meta as ImportMeta & { env?: Record<string, string | boolean | undefined> }).env ?? {};
+
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: runtimeEnv.VITE_FIREBASE_API_KEY ?? (typeof process !== 'undefined' ? process.env.VITE_FIREBASE_API_KEY : undefined),
+  authDomain: runtimeEnv.VITE_FIREBASE_AUTH_DOMAIN ?? (typeof process !== 'undefined' ? process.env.VITE_FIREBASE_AUTH_DOMAIN : undefined),
+  projectId: runtimeEnv.VITE_FIREBASE_PROJECT_ID ?? (typeof process !== 'undefined' ? process.env.VITE_FIREBASE_PROJECT_ID : undefined),
+  storageBucket: runtimeEnv.VITE_FIREBASE_STORAGE_BUCKET ?? (typeof process !== 'undefined' ? process.env.VITE_FIREBASE_STORAGE_BUCKET : undefined),
+  messagingSenderId: runtimeEnv.VITE_FIREBASE_MESSAGING_SENDER_ID ?? (typeof process !== 'undefined' ? process.env.VITE_FIREBASE_MESSAGING_SENDER_ID : undefined),
+  appId: runtimeEnv.VITE_FIREBASE_APP_ID ?? (typeof process !== 'undefined' ? process.env.VITE_FIREBASE_APP_ID : undefined)
 };
 
 export const isFirebaseConfigured = !!(
@@ -85,6 +87,15 @@ export const signInWithGoogle = async (): Promise<{ user: AuthUser }> => {
     );
     console.log('[Google Sign-In] Popup success:', result.user.email);
 
+    localStorage.setItem(
+      "userName",
+      result.user.displayName || result.user.email?.split("@")[0] || "Candidate"
+    );
+    localStorage.setItem(
+      "displayName",
+      result.user.displayName || ""
+    );
+
     return {
       user: {
         uid: result.user.uid,
@@ -102,6 +113,14 @@ export const signInWithGoogle = async (): Promise<{ user: AuthUser }> => {
 export const signInWithEmail = async (email: string, password: string): Promise<{ user: AuthUser }> => {
   if (isFirebaseConfigured && auth) {
     const result = await fbSignInWithEmailAndPassword(auth, email, password);
+    localStorage.setItem(
+      "userName",
+      result.user.displayName || result.user.email?.split("@")[0] || "Candidate"
+    );
+    localStorage.setItem(
+      "displayName",
+      result.user.displayName || ""
+    );
     return {
       user: {
         uid: result.user.uid,
@@ -125,6 +144,8 @@ export const signUpWithEmail = async (name: string, email: string, password: str
         console.warn("Failed to update display name:", err);
       }
     }
+    localStorage.setItem("userName", name);
+    localStorage.setItem("displayName", name);
     return {
       user: {
         uid: result.user.uid,
@@ -157,6 +178,14 @@ export const onAuthChanged = (callback: (user: AuthUser | null) => void) => {
     return fbOnAuthStateChanged(auth, (fbUser) => {
       console.log("[Firebase Auth State]", fbUser);
       if (fbUser) {
+        localStorage.setItem(
+          "userName",
+          fbUser.displayName || fbUser.email?.split("@")[0] || "Candidate"
+        );
+        localStorage.setItem(
+          "displayName",
+          fbUser.displayName || ""
+        );
         callback({
           uid: fbUser.uid,
           displayName: fbUser.displayName,
@@ -165,6 +194,8 @@ export const onAuthChanged = (callback: (user: AuthUser | null) => void) => {
           college: "Global University"
         });
       } else {
+        localStorage.removeItem("userName");
+        localStorage.removeItem("displayName");
         callback(null);
       }
     });

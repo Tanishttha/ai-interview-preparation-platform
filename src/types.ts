@@ -23,6 +23,7 @@ export interface Company {
 
 export interface CodingProblem {
   id: string;
+  slug?: string;
   title: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   acceptanceRate: string;

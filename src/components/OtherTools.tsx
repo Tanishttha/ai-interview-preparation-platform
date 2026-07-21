@@ -19,6 +19,9 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
   // --- Pomodoro State ---
   const [pomoTime, setPomoTime] = useState(1500); // 25 min default
   const [pomoActive, setPomoActive] = useState(false);
+  // --- Stopwatch State ---
+  const [stopwatchSeconds, setStopwatchSeconds] = useState(0);
+  const [stopwatchRunning, setStopwatchRunning] = useState(false);
 
   useEffect(() => {
     let timer: any;
@@ -33,10 +36,30 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
     return () => clearInterval(timer);
   }, [pomoActive, pomoTime]);
 
+  // Stopwatch interval effect
+  useEffect(() => {
+    let interval: any = null;
+    if (stopwatchRunning) {
+      interval = setInterval(() => {
+        setStopwatchSeconds((s) => s + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [stopwatchRunning]);
+
   const formatPomoTime = () => {
     const mins = Math.floor(pomoTime / 60);
     const secs = pomoTime % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatStopwatch = () => {
+    const h = Math.floor(stopwatchSeconds / 3600).toString().padStart(2,'0');
+    const m = Math.floor((stopwatchSeconds % 3600) / 60).toString().padStart(2,'0');
+    const s = (stopwatchSeconds % 60).toString().padStart(2,'0');
+    return `${h}:${m}:${s}`;
   };
 
   // --- Notes State ---
@@ -49,16 +72,32 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
   // Fetch Notes on mount
   useEffect(() => {
     apiFetch('/api/notes')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          setNotes([]);
+          setActiveNote(null);
+          setNoteTitle('');
+          setNoteContent('');
+          return;
+        }
+        return res.json();
+      })
       .then((data) => {
-        setNotes(data);
-        if (data && data.length > 0) {
+        if (!data) return;
+        setNotes(Array.isArray(data) ? data : []);
+        if (Array.isArray(data) && data.length > 0) {
           setActiveNote(data[0]);
           setNoteTitle(data[0].title);
           setNoteContent(data[0].content);
+        } else {
+          setActiveNote(null);
+          setNoteTitle('');
+          setNoteContent('');
         }
       })
-      .catch((err) => console.error('Error fetching notes:', err));
+      .catch((err) => {
+        console.error('Error fetching notes:', err);
+      });
   }, []);
 
   const handleSaveNote = async () => {
@@ -69,6 +108,9 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: noteTitle, content: noteContent })
       });
+      if (!res.ok) {
+        return;
+      }
       const data = await res.json();
       const updated = notes.map((n) => (n.id === activeNote.id ? data : n));
       setNotes(updated);
@@ -89,6 +131,9 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
           folder: 'Unsorted'
         })
       });
+      if (!res.ok) {
+        return;
+      }
       const data = await res.json();
       setNotes([data, ...notes]);
       setActiveNote(data);
@@ -101,7 +146,10 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
 
   const handleDeleteNote = async (id: string) => {
     try {
-      await apiFetch(`/api/notes/${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/notes/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        return;
+      }
       const updated = notes.filter((n) => n.id !== id);
       setNotes(updated);
       if (activeNote?.id === id) {
@@ -525,49 +573,120 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
 
       {/* 5. POMODORO TIMER */}
       {tool === 'pomodoro' && (
-        <div className={`max-w-md mx-auto p-8 border rounded-3xl text-center space-y-6 shadow-sm ${cardBg} ${borderPrimary}`}>
-          <div className="space-y-1">
-            <h3 className={`font-bold text-base flex items-center justify-center gap-2 ${textPrimary}`}>
-              <Timer className="w-5 h-5 text-rose-500" /> Pomodoro Study Timer
-            </h3>
-            <p className={`text-xs font-medium ${textSecondary}`}>Structure your algorithmic blocks with high-focus cycles.</p>
-          </div>
-
-          <div className="text-5xl font-mono font-bold text-rose-500 tracking-wider">
-            {formatPomoTime()}
-          </div>
-
-          <div className="flex justify-center gap-2 text-xs font-bold">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          {/* Pomodoro Card */}
+          <div className={`p-8 border rounded-3xl text-center space-y-6 shadow-sm ${cardBg} ${borderPrimary}`}>
+            <div className="space-y-1">
+              <h3 className={`font-bold text-base flex items-center justify-center gap-2 ${textPrimary}`}>
+                Pomodoro Timer
+              </h3>
+              <p className={`text-xs font-medium ${textSecondary}`}>Structure your algorithmic blocks with high-focus cycles.</p>
+            </div>
+            <div className="relative flex flex-col items-center">
+              <div className="text-5xl font-mono font-bold text-rose-500 tracking-wider">
+                {formatPomoTime()}
+              </div>
+              {pomoActive && (
+                <span className="mt-2 flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse mr-2"></span>
+                  <span className={`text-xs font-mono ${textSecondary}`}>Focusing...</span>
+                </span>
+              )}
+            </div>
+            <div className="flex justify-center gap-2 text-xs font-bold">
+              <button
+                onClick={() => {
+                  setPomoTime(1500);
+                  setPomoActive(false);
+                }}
+                className={`px-3 py-1.5 border rounded-lg cursor-pointer ${subCardBg} ${borderPrimary} ${textSecondary}`}
+                type="button"
+              >
+                25 Min Standard
+              </button>
+              <button
+                onClick={() => {
+                  setPomoTime(3000);
+                  setPomoActive(false);
+                }}
+                className={`px-3 py-1.5 border rounded-lg cursor-pointer ${subCardBg} ${borderPrimary} ${textSecondary}`}
+                type="button"
+              >
+                50 Min deep blocks
+              </button>
+            </div>
             <button
-              onClick={() => {
-                setPomoTime(1500);
-                setPomoActive(false);
-              }}
-              className={`px-3 py-1.5 border rounded-lg cursor-pointer ${subCardBg} ${borderPrimary} ${textSecondary}`}
+              onClick={() => setPomoActive(!pomoActive)}
+              className={`px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 mx-auto cursor-pointer shadow-md transition-all ${
+                pomoActive
+                  ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-500/20'
+                  : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'
+              }`}
+              type="button"
             >
-              25 Min Standard
-            </button>
-            <button
-              onClick={() => {
-                setPomoTime(3000);
-                setPomoActive(false);
-              }}
-              className={`px-3 py-1.5 border rounded-lg cursor-pointer ${subCardBg} ${borderPrimary} ${textSecondary}`}
-            >
-              50 Min deep blocks
+              {pomoActive ? 'Pause Focus' : 'Start Focus'}
             </button>
           </div>
-
-          <button
-            onClick={() => setPomoActive(!pomoActive)}
-            className={`px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 mx-auto cursor-pointer shadow-md transition-all ${
-              pomoActive
-                ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-500/20'
-                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'
-            }`}
-          >
-            {pomoActive ? 'Pause study session' : 'Start deep focus'}
-          </button>
+          {/* Stopwatch Card */}
+          <div className={`p-8 border rounded-3xl text-center space-y-6 shadow-sm ${cardBg} ${borderPrimary}`}>
+            <div className="space-y-1">
+              <h3 className={`font-bold text-base flex items-center justify-center gap-2 ${textPrimary}`}>
+                ⏱ Stopwatch
+              </h3>
+              <p className={`text-xs font-medium ${textSecondary}`}>Track your uninterrupted study sessions.</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-5xl font-mono font-bold text-blue-600 dark:text-cyan-400 tracking-wider">
+                {formatStopwatch()}
+              </span>
+              <span className={`text-[11px] mt-2 font-mono ${textSecondary}`}>Elapsed Study Time</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 text-xs font-bold mt-2">
+              {/* Start */}
+              {!stopwatchRunning && stopwatchSeconds === 0 && (
+                <button
+                  onClick={() => setStopwatchRunning(true)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-sm"
+                  type="button"
+                >
+                  Start
+                </button>
+              )}
+              {/* Pause */}
+              {stopwatchRunning && (
+                <button
+                  onClick={() => setStopwatchRunning(false)}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl shadow-sm"
+                  type="button"
+                >
+                  Pause
+                </button>
+              )}
+              {/* Resume */}
+              {!stopwatchRunning && stopwatchSeconds > 0 && (
+                <button
+                  onClick={() => setStopwatchRunning(true)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-sm"
+                  type="button"
+                >
+                  Resume
+                </button>
+              )}
+              {/* Reset */}
+              {stopwatchSeconds > 0 && (
+                <button
+                  onClick={() => {
+                    setStopwatchRunning(false);
+                    setStopwatchSeconds(0);
+                  }}
+                  className={`px-4 py-2 ${subCardBg} ${borderPrimary} ${textSecondary} border rounded-xl shadow-sm`}
+                  type="button"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -600,7 +719,7 @@ export default function OtherTools({ tool, bookmarks, onToggleBookmark, isDark =
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 scrollbar-none">
-              {notes.filter(n => n.title.toLowerCase().includes(notesSearch.toLowerCase())).map((item) => (
+              {(Array.isArray(notes) ? notes : []).filter(n => n.title.toLowerCase().includes(notesSearch.toLowerCase())).map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
