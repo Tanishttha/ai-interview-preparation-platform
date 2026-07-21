@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
-import { readDb, writeDb } from '../config/db';
+import prisma from '../config/prisma';
 
 export class UtilityController {
   // Calendar Events
@@ -37,8 +37,23 @@ export class UtilityController {
   // Notes Module
   async getNotes(req: AuthenticatedRequest, res: Response) {
     try {
-      const db = readDb();
-      res.json(db.notes || []);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      const user = await prisma.user.findUnique({
+        where: { firebaseUid }
+      });
+
+      if (!user) {
+        return res.json([]);
+      }
+
+      const notes = await prisma.note.findMany({
+        where: { userId: user.id },
+        orderBy: { updatedAt: 'desc' }
+      });
+
+      res.json(notes);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -47,17 +62,28 @@ export class UtilityController {
   async createNote(req: AuthenticatedRequest, res: Response) {
     const { title, content, folder } = req.body;
     try {
-      const db = readDb();
-      const newNote = {
-        id: `note_${Date.now()}`,
-        title: title || "Untitled Note",
-        content: content || "",
-        folder: folder || "Unsorted",
-        updatedAt: new Date().toISOString().split('T')[0]
-      };
-      db.notes = db.notes || [];
-      db.notes.push(newNote);
-      writeDb(db);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      let user = await prisma.user.findUnique({
+        where: { firebaseUid }
+      });
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: { firebaseUid }
+        });
+      }
+
+      const newNote = await prisma.note.create({
+        data: {
+          userId: user.id,
+          title: title || "Untitled Note",
+          content: content || "",
+          folder: folder || "Unsorted"
+        }
+      });
+
       res.status(201).json(newNote);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -68,20 +94,38 @@ export class UtilityController {
     const { id } = req.params;
     const { title, content, folder } = req.body;
     try {
-      const db = readDb();
-      db.notes = db.notes || [];
-      const index = db.notes.findIndex((n: any) => n.id === id);
-      if (index === -1) return res.status(404).json({ error: "Note not found" });
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
 
-      db.notes[index] = {
-        ...db.notes[index],
-        title: title !== undefined ? title : db.notes[index].title,
-        content: content !== undefined ? content : db.notes[index].content,
-        folder: folder !== undefined ? folder : db.notes[index].folder,
-        updatedAt: new Date().toISOString().split('T')[0]
-      };
-      writeDb(db);
-      res.json(db.notes[index]);
+      const user = await prisma.user.findUnique({
+        where: { firebaseUid }
+      });
+
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      const updateData: any = {};
+      if (title !== undefined) updateData.title = title;
+      if (content !== undefined) updateData.content = content;
+      if (folder !== undefined) updateData.folder = folder;
+      updateData.updatedAt = new Date();
+
+      const result = await prisma.note.updateMany({
+        where: {
+          id,
+          userId: user.id
+        },
+        data: updateData
+      });
+
+      if (result.count === 0) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      const updatedNote = await prisma.note.findUnique({
+        where: { id }
+      });
+
+      res.json(updatedNote);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -90,10 +134,26 @@ export class UtilityController {
   async deleteNote(req: AuthenticatedRequest, res: Response) {
     const { id } = req.params;
     try {
-      const db = readDb();
-      db.notes = db.notes || [];
-      db.notes = db.notes.filter((n: any) => n.id !== id);
-      writeDb(db);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      const user = await prisma.user.findUnique({
+        where: { firebaseUid }
+      });
+
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      const result = await prisma.note.deleteMany({
+        where: {
+          id,
+          userId: user.id
+        }
+      });
+
+      if (result.count === 0) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
       res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });

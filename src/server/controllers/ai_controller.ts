@@ -1,19 +1,12 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
-import { GoogleGenAI, Type } from '@google/genai';
+import Groq from 'groq-sdk';
 
 const apiKey = process.env.GROQ_API_KEY;
-let ai: GoogleGenAI | null = null;
+let ai: Groq | null = null;
 
 if (apiKey) {
-  ai = new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
-  });
+  ai = new Groq({ apiKey });
 }
 
 export class AIController {
@@ -40,16 +33,17 @@ User's Latest Message: ${message}
 
 Provide a helpful, direct, and concise response in Markdown. Keep the tone encouraging, technical, and professional. Avoid filler words.`;
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.5-flash',
-          contents: prompt,
+        const completion = await ai.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
         });
+        const text = completion.choices[0]?.message?.content ?? '';
 
-        return res.json({ response: response.text });
+        return res.json({ response: text });
       } else {
         // Offline / No-Key Fallback
         return res.json({
-          response: `[Simulated Mode] I received your message: "${message}". To unlock real-time Gemini AI chat capabilities, please configure the \`GROQ_API_KEY\` secret in the platform Settings panel. Currently, I am operating in mock mode to ensure local routes function correctly.`
+          response: `[Simulated Mode] I received your message: "${message}". To unlock real-time Groq-powered AI chat capabilities, please configure the \`GROQ_API_KEY\` secret in the platform Settings panel. Currently, I am operating in mock mode to ensure local routes function correctly.`
         });
       }
     } catch (err: any) {
@@ -81,12 +75,13 @@ User's Latest Query: ${message}
 
 Provide actionable advice about recruitment pipelines, technical skill scaling, compensation trends, or profile refinement strategies. Use scannable formatting (bullet points, bold highlights) and keep the tone direct, professional, and highly motivating.`;
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.5-flash',
-          contents: prompt,
+        const completion = await ai.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
         });
+        const text = completion.choices[0]?.message?.content ?? '';
 
-        return res.json({ response: response.text });
+        return res.json({ response: text });
       } else {
         // Offline / No-Key Fallback
         return res.json({
@@ -128,42 +123,53 @@ For each week, define:
    - id: string (unique task ID, e.g., "1-1", "1-2")
    - text: string (specific, highly actionable preparation task, problem suggestion, or system design concept)
    - completed: boolean (always false)
-   - category: string (one of "Coding", "Fundamentals", "Technical", "System Design", "HR")`;
+   - category: string (one of "Coding", "Fundamentals", "Technical", "System Design", "HR")
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.5-flash',
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  week: { type: Type.INTEGER },
-                  title: { type: Type.STRING },
-                  progress: { type: Type.INTEGER },
-                  tasks: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        id: { type: Type.STRING },
-                        text: { type: Type.STRING },
-                        completed: { type: Type.BOOLEAN },
-                        category: { type: Type.STRING },
-                      },
-                      required: ['id', 'text', 'completed', 'category'],
-                    },
-                  },
-                },
-                required: ['week', 'title', 'progress', 'tasks'],
-              },
-            },
-          },
+IMPORTANT:
+Return ONLY valid JSON.
+Do NOT include markdown.
+Do NOT wrap the response in \`\`\`json fences.
+Do NOT add explanations or introductory text.
+Return a JSON array only.
+
+Example:
+[
+  {
+    "week": 1,
+    "title": "Arrays & Strings",
+    "progress": 0,
+    "tasks": [
+      {
+        "id": "1-1",
+        "text": "Solve 10 array problems",
+        "completed": false,
+        "category": "Coding"
+      }
+    ]
+  }
+]`;
+
+        const completion = await ai.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
         });
+        const text = completion.choices[0]?.message?.content ?? '';
 
-        const roadmapData = JSON.parse(response.text.trim());
+        const rawResponse = text.trim();
+
+        console.log('===== RAW ROADMAP RESPONSE =====');
+        console.log(rawResponse);
+
+        const cleanedResponse = rawResponse
+          .replace(/```json/gi, '')
+          .replace(/```/g, '')
+          .trim();
+
+        if (!cleanedResponse) {
+          throw new Error('AI model returned an empty response.');
+        }
+
+        const roadmapData = JSON.parse(cleanedResponse);
         return res.json(roadmapData);
       } else {
         // Fallback static structural roadmap tailored slightly to inputs
@@ -202,8 +208,14 @@ For each week, define:
         return res.json(mockWeeks);
       }
     } catch (err: any) {
-      console.error('AI Roadmap Generation Error:', err);
-      return res.status(500).json({ error: err.message || 'An error occurred during roadmap generation.' });
+      console.error('===== AI ROADMAP ERROR =====');
+      console.error(err);
+      console.error('Message:', err?.message);
+      console.error('Stack:', err?.stack);
+
+      return res.status(500).json({
+        error: err?.message || 'Roadmap generation failed.'
+      });
     }
   }
 
@@ -294,10 +306,7 @@ For each week, define:
     const apiKey = process.env.GROQ_API_KEY;
     try {
       if (apiKey) {
-        const aiInstance = new GoogleGenAI({
-          apiKey,
-          httpOptions: { headers: { "User-Agent": "aistudio-build" } }
-        });
+        const aiInstance = new Groq({ apiKey });
         const prompt = `You are an elite Senior SDE Interviewer and static analyzer. Review this candidate's code submission for the problem "${problemTitle || 'Coding Challenge'}".
 Language: ${language || 'typescript'}
 Code:
@@ -310,12 +319,13 @@ Provide a robust code review report in Markdown format. Cover:
 
 Be highly professional, clear, and constructive.`;
 
-        const response = await aiInstance.models.generateContent({
-          model: 'gemini-3.5-flash',
-          contents: prompt,
+        const completion = await aiInstance.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
         });
+        const text = completion.choices[0]?.message?.content ?? '';
 
-        return res.json({ review: response.text });
+        return res.json({ review: text });
       } else {
         return res.json({
           review: `### AI Code Review (Simulated Mode)
@@ -325,7 +335,7 @@ Be highly professional, clear, and constructive.`;
 - **Suggestions**:
   1. Add parameter validations to avoid null pointer reference errors.
   2. Optimize memory allocations by reusing arrays or list elements where applicable.
-  3. Ensure your GROQ_API_KEY is configured in the platform Settings to enable real-time Gemini AI code audits!`
+  3. Ensure your GROQ_API_KEY is configured in the platform Settings to enable real-time Groq-powered AI code audits!`
         });
       }
     } catch (err: any) {

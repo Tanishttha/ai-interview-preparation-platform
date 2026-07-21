@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import admin from 'firebase-admin';
+import { getApps } from 'firebase-admin/app';
 
 dotenv.config();
 
@@ -21,21 +22,27 @@ function init() {
   try {
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      if (getApps().length === 0) {
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount)
+        });
+      }
       available = true;
     } else if (
       process.env.FIREBASE_PROJECT_ID &&
       process.env.FIREBASE_CLIENT_EMAIL &&
       process.env.FIREBASE_PRIVATE_KEY
     ) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          // .env files can't hold literal newlines — they're passed as \n
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-        })
-      });
+      if (getApps().length === 0) {
+        admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            // .env files can't hold literal newlines — they're passed as \n
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+          })
+        });
+      }
       available = true;
       console.log('[auth] Firebase Admin SDK initialized for project:', process.env.FIREBASE_PROJECT_ID);
     } else {

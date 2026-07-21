@@ -20,6 +20,28 @@
       "id": "u_1784542377012_1h31nl",
       "createdAt": "2026-07-20T10:12:57.012Z",
       "updatedAt": "2026-07-20T10:12:57.012Z"
+    },
+    {
+      "email": "tusharbanga2405@gmail.com",
+      "firebaseUid": "NBL0rRbyw2hZp7R6Lc953X4yWNQ2",
+      "name": "Tushar Banga",
+      "passwordHash": null,
+      "role": "CANDIDATE",
+      "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocI1v5frOPozVukeXIBh3n1TcZ-QKDFtZWqGLRjnHB2uzxsiIYo=s96-c",
+      "id": "u_1784631947305_futohl",
+      "createdAt": "2026-07-21T11:05:47.305Z",
+      "updatedAt": "2026-07-21T11:05:47.305Z"
+    },
+    {
+      "email": "tusharbanga242005@gmail.com",
+      "firebaseUid": "Nxiyb0H8TMTMk3bRaPhbRxxgx9X2",
+      "name": "Tushar Banga",
+      "passwordHash": null,
+      "role": "CANDIDATE",
+      "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLMAam30yGPzN97BmGmzx_Lmm-zN3CCUaB_YrRE73gSG5zaGw=s96-c",
+      "id": "u_1784632410340_c48d99",
+      "createdAt": "2026-07-21T11:13:30.340Z",
+      "updatedAt": "2026-07-21T11:13:30.340Z"
     }
   ],
   "profiles": [
@@ -45,6 +67,40 @@
     {
       "id": "p_1784542377013",
       "userId": "u_1784542377012_1h31nl",
+      "college": "Global University",
+      "graduationYear": 2026,
+      "bio": "Software engineering enthusiast",
+      "githubUrl": "",
+      "linkedinUrl": "",
+      "yearsOfExp": 0,
+      "targetRole": "Software Engineer",
+      "targetSalary": "",
+      "cgpa": 8.2,
+      "branch": "Computer Science",
+      "problemsSolved": 142,
+      "resumeScore": 89,
+      "targetCompany": "Google"
+    },
+    {
+      "id": "p_1784631947309",
+      "userId": "u_1784631947305_futohl",
+      "college": "Global University",
+      "graduationYear": 2026,
+      "bio": "Software engineering enthusiast",
+      "githubUrl": "",
+      "linkedinUrl": "",
+      "yearsOfExp": 0,
+      "targetRole": "Software Engineer",
+      "targetSalary": "",
+      "cgpa": 8.2,
+      "branch": "Computer Science",
+      "problemsSolved": 142,
+      "resumeScore": 89,
+      "targetCompany": "Google"
+    },
+    {
+      "id": "p_1784632410343",
+      "userId": "u_1784632410340_c48d99",
       "college": "Global University",
       "graduationYear": 2026,
       "bio": "Software engineering enthusiast",
@@ -489,14 +545,22 @@
     }
   ],
   "mockInterviews": [],
-  "calendarEvents": [],
+  "calendarEvents": [
+    {
+      "id": "event_1784632382183",
+      "title": "ab",
+      "date": "2026-12-21",
+      "time": "12:30",
+      "description": "Custom Study Session"
+    }
+  ],
   "notes": [
     {
       "id": "n1",
-      "title": "System Design - Rate Limiter",
-      "content": "Topics discussed: Token Bucket vs Leaky Bucket vs Sliding Window Log algorithms.\nToken bucket is best for bursty traffic because it permits instant execution of accumulated tokens. Leaky bucket smooths out requests at a constant flow rate. Redis sorted sets are perfect for implementing sliding window rate limiters.",
+      "title": "AB",
+      "content": "AB",
       "folder": "System Design",
-      "updatedAt": "2026-07-19"
+      "updatedAt": "2026-07-21"
     },
     {
       "id": "n2",
@@ -504,6 +568,20 @@
       "content": "Main patterns:\n1. 0/1 Knapsack\n2. Unbounded Knapsack\n3. Fibonacci sequence\n4. Longest Common Subsequence (LCS)\n5. Shortest Path grid traversal\n\nOptimizing space complexity from O(N*M) to O(Min(N,M)) is highly appreciated during interviews.",
       "folder": "DSA",
       "updatedAt": "2026-07-19"
+    },
+    {
+      "id": "note_1784632521511",
+      "title": "New Scratchpad Note",
+      "content": "Start writing your conceptual code details here...",
+      "folder": "Unsorted",
+      "updatedAt": "2026-07-21"
+    },
+    {
+      "id": "note_1784632826124",
+      "title": "New Scratchpad Note",
+      "content": "Start writing your conceptual code details here...",
+      "folder": "Unsorted",
+      "updatedAt": "2026-07-21"
     }
   ],
   "bookmarks": [],
@@ -528,6 +606,17 @@
   "resumeProfiles": [
     {
       "userId": "u_1784542377012_1h31nl",
+      "name": "Mehak Sharma",
+      "title": "SDE Candidate",
+      "email": "mehak@example.com",
+      "skills": "React, Node.js, TypeScript, SQL, Docker, Redis",
+      "bullets": [
+        "Implemented full-text search index filters.",
+        "Refactored API controllers to improve database response speeds."
+      ]
+    },
+    {
+      "userId": "u_1784631947305_futohl",
       "name": "Mehak Sharma",
       "title": "SDE Candidate",
       "email": "mehak@example.com",
