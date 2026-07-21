@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { readDb, writeDb, prisma, isPrismaActive } from "../config/db";
+import { prisma } from "../config/db";
 
 const apiKey = process.env.GROQ_API_KEY;
 let ai: GoogleGenAI | null = null;
@@ -188,92 +188,20 @@ Extract the most up-to-date and accurate 2026 corporate software development hir
 }
 
 /**
- * Save scraped data to persistent storage (db.json / fallback + Prisma if active)
+ * Save scraped data using Prisma only.
  */
 export function saveScrapedDataToDb(scraped: ScrapedDataResult) {
-  try {
-    // A. FALLBACK JSON DATABASE (ALWAYS PERSIST)
-    const db = readDb();
-    
-    // 1. Push to audited scraper logs
-    db.scrapedCareerPages = db.scrapedCareerPages || [];
-    db.scrapedCareerPages.unshift(scraped);
+  const companyId = scraped.companyName.trim().toLowerCase().replace(/\s+/g, "_");
 
-    // Keep list clean, store max 50 pages
-    if (db.scrapedCareerPages.length > 50) {
-      db.scrapedCareerPages.pop();
-    }
-
-    // 2. Enrich/Sync the core COMPANIES list so it instantly appears in the UI
-    db.companies = db.companies || [];
-    const normalizedName = scraped.companyName.trim();
-    const companyId = normalizedName.toLowerCase().replace(/\s+/g, "_");
-
-    const existingIndex = db.companies.findIndex((c: any) => c.name.toLowerCase() === normalizedName.toLowerCase() || c.id === companyId);
-
-    const companyLogoEmoji = getLogoEmoji(normalizedName);
-    const mappedCompany = {
-      id: companyId,
-      name: normalizedName,
-      logo: companyLogoEmoji,
-      role: scraped.recentOpenings?.[0]?.title || "Software Engineer",
-      package: scraped.packageRange || "24 - 36 LPA",
-      difficulty: scraped.interviewDifficulty || "Medium",
-      location: scraped.recentOpenings?.[0]?.location || "Remote",
-      batch: "2025 / 2026",
-      interviewRounds: scraped.interviewRounds && scraped.interviewRounds.length > 0 ? scraped.interviewRounds : ["OA", "Technical DS/Algo", "System Design"],
-      prepTime: scraped.interviewDifficulty === "Hard" ? "3 - 4 Months" : "2 Months",
-      successRate: scraped.interviewDifficulty === "Hard" ? 12 : 18,
-      overview: scraped.interviewProcess || `Detailed recruitment process scraped for ${normalizedName}.`,
-      hiringProcess: scraped.interviewProcess || `Recruitment pattern scraped from open job postings and carrier pages.`,
-      eligibility: scraped.eligibilityCriteria || "CGPA > 7.5, CS/IT or relevant technical branches.",
-      ctcBreakdown: scraped.packageRange || "24 - 36 LPA Base plus performance incentive.",
-      skillsRequired: scraped.technicalTopics && scraped.technicalTopics.length > 0 ? scraped.technicalTopics : ["Algorithms", "Coding cleanliness"],
-      importantTopics: scraped.technicalTopics && scraped.technicalTopics.length > 0 ? scraped.technicalTopics : ["Data Structures"],
-      recentTrends: `Hiring trends prioritize: ${scraped.technicalTopics.slice(0, 3).join(", ")}.`,
-      difficultyScore: scraped.interviewDifficulty === "Hard" ? 85 : scraped.interviewDifficulty === "Medium" ? 72 : 50,
-      resources: [
-        { name: `${normalizedName} Jobs Page`, type: "Career site", url: scraped.scrapedUrl || "#" },
-        { name: "Leetcode Prep Card", type: "Practice", url: "#" }
-      ]
-    };
-
-    if (existingIndex !== -1) {
-      // Merge with existing properties
-      db.companies[existingIndex] = {
-        ...db.companies[existingIndex],
-        ...mappedCompany,
-        id: db.companies[existingIndex].id // keep original ID
-      };
-    } else {
-      db.companies.push(mappedCompany);
-    }
-
-    writeDb(db);
-    console.log(`Persistent storage indexed: Enriched ${normalizedName} successfully in db.json.`);
-
-    // B. PRISMA DATABASE WRITER (IF ACTIVE)
-    if (isPrismaActive && prisma) {
-      try {
-        // Run Prisma transaction asynchronously to avoid blocking
-        runPrismaSync(scraped, companyId).catch(prismaErr => {
-          console.warn("Prisma background sync encountered minor warning:", prismaErr.message);
-        });
-      } catch (prismaInitErr) {
-        // Safe to ignore, we already persisted to db.json fallback
-      }
-    }
-
-  } catch (err: any) {
-    console.error("Failed to persist scraped company data:", err.message);
-  }
+  runPrismaSync(scraped, companyId).catch((err) => {
+    console.error("Failed to persist scraped company data:", err);
+  });
 }
 
 /**
  * Background background sync for active PostgreSQL schemas
  */
 async function runPrismaSync(scraped: ScrapedDataResult, companyId: string) {
-  if (!prisma) return;
   const normalizedName = scraped.companyName.trim();
 
   // Try to create or update company in Prisma
