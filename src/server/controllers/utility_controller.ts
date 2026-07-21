@@ -40,7 +40,9 @@ export class UtilityController {
       const firebaseUid = req.user?.uid;
       if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
 
-      const user = await prisma.user.findUnique({
+      // TODO: Ensure the User model contains a firebaseUid field (preferably @unique).
+      // If it does not, add it to schema.prisma and run prisma generate + prisma db push.
+      const user = await prisma.user.findFirst({
         where: { firebaseUid }
       });
 
@@ -65,11 +67,14 @@ export class UtilityController {
       const firebaseUid = req.user?.uid;
       if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
 
-      let user = await prisma.user.findUnique({
+      // TODO: Ensure the User model contains a firebaseUid field (preferably @unique).
+      // If it does not, add it to schema.prisma and run prisma generate + prisma db push.
+      let user = await prisma.user.findFirst({
         where: { firebaseUid }
       });
 
       if (!user) {
+        // TODO: Populate required fields such as email, name, etc. from the authenticated Firebase token before creating the user.
         user = await prisma.user.create({
           data: { firebaseUid }
         });
@@ -97,7 +102,9 @@ export class UtilityController {
       const firebaseUid = req.user?.uid;
       if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
 
-      const user = await prisma.user.findUnique({
+      // TODO: Ensure the User model contains a firebaseUid field (preferably @unique).
+      // If it does not, add it to schema.prisma and run prisma generate + prisma db push.
+      const user = await prisma.user.findFirst({
         where: { firebaseUid }
       });
 
@@ -137,7 +144,9 @@ export class UtilityController {
       const firebaseUid = req.user?.uid;
       if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
 
-      const user = await prisma.user.findUnique({
+      // TODO: Ensure the User model contains a firebaseUid field (preferably @unique).
+      // If it does not, add it to schema.prisma and run prisma generate + prisma db push.
+      const user = await prisma.user.findFirst({
         where: { firebaseUid }
       });
 
