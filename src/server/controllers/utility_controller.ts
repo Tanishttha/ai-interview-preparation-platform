@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
-import prisma from '../config/prisma';
+import prisma from '../prisma';
 import { readDb, writeDb } from '../config/db';
 
 export class UtilityController {
