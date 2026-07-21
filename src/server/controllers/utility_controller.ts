@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import prisma from '../config/prisma';
+import { readDb, writeDb } from '../config/db';
 
 export class UtilityController {
   // Calendar Events
@@ -76,7 +77,11 @@ export class UtilityController {
       if (!user) {
         // TODO: Populate required fields such as email, name, etc. from the authenticated Firebase token before creating the user.
         user = await prisma.user.create({
-          data: { firebaseUid }
+          data: {
+            firebaseUid,
+            email: req.user?.email ?? `${firebaseUid}@firebase.local`,
+            name: req.user?.name ?? 'User'
+          }
         });
       }
 
