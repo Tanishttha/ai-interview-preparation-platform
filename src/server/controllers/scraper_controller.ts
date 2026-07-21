@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { scrapeCompanyData } from "../services/scraper_service";
-import { readDb } from "../config/db";
+import { prisma } from "../config/db";
 
 export class ScraperController {
   /**
@@ -35,8 +35,9 @@ export class ScraperController {
    */
   async getScrapedHistory(req: Request, res: Response) {
     try {
-      const db = readDb();
-      const history = db.scrapedCareerPages || [];
+      const history = await prisma.company.findMany({
+        orderBy: { updatedAt: 'desc' }
+      });
       return res.status(200).json(history);
     } catch (err: any) {
       return res.status(500).json({ error: err.message });
