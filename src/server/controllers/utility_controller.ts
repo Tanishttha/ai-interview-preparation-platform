@@ -7,8 +7,23 @@ export class UtilityController {
   // Calendar Events
   async getCalendar(req: AuthenticatedRequest, res: Response) {
     try {
-      const db = readDb();
-      res.json(db.calendarEvents || []);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      const user = await prisma.user.findFirst({ where: { firebaseUid } });
+      if (!user) {
+        return res.json([]);
+      }
+
+      const events = await prisma.calendarEvent.findMany({
+        where: { userId: user.id },
+        orderBy: [
+          { date: 'asc' },
+          { time: 'asc' }
+        ]
+      });
+
+      res.json(events);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -18,18 +33,32 @@ export class UtilityController {
     const { title, date, time, description } = req.body;
     if (!title || !date) return res.status(400).json({ error: "Missing title or date" });
     try {
-      const db = readDb();
-      const newEvent = {
-        id: `event_${Date.now()}`,
-        title,
-        date,
-        time: time || "12:00",
-        description: description || ""
-      };
-      db.calendarEvents = db.calendarEvents || [];
-      db.calendarEvents.push(newEvent);
-      writeDb(db);
-      res.status(201).json(newEvent);
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) return res.status(401).json({ error: "Unauthorized" });
+
+      let user = await prisma.user.findFirst({ where: { firebaseUid } });
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            firebaseUid,
+            email: req.user?.email ?? `${firebaseUid}@firebase.local`,
+            name: req.user?.name ?? 'User'
+          }
+        });
+      }
+
+      const event = await prisma.calendarEvent.create({
+        data: {
+          userId: user.id,
+          title,
+          date,
+          time: time || '12:00',
+          description: description || ''
+        }
+      });
+
+      res.status(201).json(event);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

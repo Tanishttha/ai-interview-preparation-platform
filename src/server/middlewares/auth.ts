@@ -5,13 +5,14 @@ import { UserRepository } from '../repositories/user_repository';
 const userRepository = new UserRepository();
 
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-    name: string;
-    photoURL?: string | null;
-  };
+user?: {
+  id: string;
+  uid: string;
+  email: string;
+  role: string;
+  name: string;
+  photoURL?: string | null;
+};
 }
 
 /**
@@ -56,8 +57,14 @@ export const authenticateJWT = async (req: AuthenticatedRequest, res: Response, 
             name: (decoded.name as string) || undefined,
             photoURL: (decoded.picture as string) || undefined
           });
-          req.user = { id: user.id, email: user.email, role: user.role, name: user.name, photoURL: user.photoURL };
-          return next();
+req.user = {
+  id: user.id,
+  uid: decoded.uid,
+  email: user.email,
+  role: user.role,
+  name: user.name,
+  photoURL: user.photoURL
+};          return next();
         } catch (err: any) {
           console.error('[auth] verifyIdToken failed:', err?.message || err);
           return res.status(401).json({ error: `Unauthorized: ${err?.message || 'invalid Firebase token'}` });
@@ -77,8 +84,14 @@ export const authenticateJWT = async (req: AuthenticatedRequest, res: Response, 
         name: decodedJson.name,
         photoURL: decodedJson.photoURL
       });
-      req.user = { id: user.id, email: user.email, role: user.role, name: user.name, photoURL: user.photoURL };
-      return next();
+req.user = {
+  id: user.id,
+  uid: decodedJson.uid,
+  email: user.email,
+  role: user.role,
+  name: user.name,
+  photoURL: user.photoURL
+};      return next();
     }
 
     return res.status(401).json({ error: 'Unauthorized: no valid credentials provided.' });

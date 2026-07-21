@@ -1,23 +1,18 @@
 import { Router } from 'express';
+import { authenticateJWT } from '../middlewares/auth';
+import { UtilityController } from '../controllers/utility_controller';
 
 export function createNotesRoutes() {
   const router = Router();
+  const controller = new UtilityController();
 
-  router.get('/:problemId', (req, res) => {
-    res.json({ problemId: req.params.problemId, content: '' });
-  });
+  router.get('/', authenticateJWT, controller.getNotes.bind(controller));
 
-  router.post('/', (_req, res) => {
-    res.json({ ok: true });
-  });
+  router.post('/', authenticateJWT, controller.createNote.bind(controller));
 
-  router.put('/:id', (req, res) => {
-    res.json({ id: req.params.id, updated: true });
-  });
+  router.put('/:id', authenticateJWT, controller.updateNote.bind(controller));
 
-  router.delete('/:id', (req, res) => {
-    res.json({ id: req.params.id, deleted: true });
-  });
+  router.delete('/:id', authenticateJWT, controller.deleteNote.bind(controller));
 
   return router;
 }
