@@ -80,7 +80,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, isOpen, set
               ? 'text-white bg-gradient-to-r from-blue-400 via-indigo-300 to-indigo-200 bg-clip-text' 
               : 'text-slate-900'
           }`}>
-            PrepAI Premium
+            PreP AI 
           </span>
         </div>
         <button 

@@ -282,7 +282,7 @@ export default function LandingPage({ onStart, onExploreCompanies, isDark }: Lan
             PrepAI
           </span>
         </div>
-        <p>&copy; 2026 PrepAI Premium Platform. All rights reserved.</p>
+        <p>&copy; 2026 PreP AI Platform. All rights reserved.</p>
         {/* <div className="flex justify-center gap-6 font-bold">
           <a href="#" className={`transition-colors ${isDark ? 'hover:text-cyan-400' : 'hover:text-blue-600'}`}>Privacy Policy</a>
           <a href="#" className={`transition-colors ${isDark ? 'hover:text-cyan-400' : 'hover:text-blue-600'}`}>Terms of Service</a>
