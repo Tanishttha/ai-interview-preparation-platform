@@ -12,6 +12,7 @@ generator client {
 model User {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   email         String    @unique
+  // Firebase Authentication UID used to map authenticated users to MongoDB records.
   firebaseUid   String?   @unique
   passwordHash  String?
   name          String
@@ -35,6 +36,7 @@ model User {
   submissions      Submission[]
   mockInterviews   MockInterview[]
   analyticsProgress AnalyticsProgress[]
+  // User-owned resources. All queries for these models must always be filtered by userId.
   bookmarks        Bookmark[]
   notifications    Notification[]
   calendarEvents   CalendarEvent[]
